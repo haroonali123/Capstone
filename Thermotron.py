@@ -37,7 +37,8 @@ class Thermotron:
             cmd = input("Enter command here: ")
             print("")
             self.write_command(cmd)
-            response = self.read_response()
+            self.read_response()
+            self.read_response()
 
 #################################################################################################################################################
 #  Temperature and Humidity Commands
@@ -49,7 +50,6 @@ class Thermotron:
         self.write_command(cmd)
         self.temp = float(self.read_response())
 
-
     def getHumidity(self):
         
         cmd = 'DRV'
@@ -57,6 +57,7 @@ class Thermotron:
         self.humidity = float(self.read_response())
 
     def setTemperature(self, value):
+        
         cmd = 'LTS' + str(value) + '\r\n'
         self.port.write(cmd.encode())
 
@@ -170,6 +171,7 @@ class Thermotron:
             print("Program Complete\n")
 
             self.stop()
+
         else:                                      #Run a sequence of experiments
 
             for program in program_number:
@@ -179,13 +181,21 @@ class Thermotron:
 
     def poll_experiment(self):       #Poll various data during experiment
 
-        self.getTemperature()
-        self.getHumidity()
-        self.getIntervalTimeLeft()
-        self.getStatus()
-        self.getInterval()
+        self.write_command(['DTV', 'DRV', 'DIN', 'DTL', 'DST'])
+        response = self.read_response(7)
 
-    def stop(self):
+        self.temp = float(response[0])
+        self.humidity = float(response[1])
+        self.interval = int(response[2])
+        self.intervaltimeleft = response[3]
+        
+        #Mimic Get response method
+        response = int(response[4])
+        mask = 0b00000111                     #Mask the rest of the status byte to only get operating condition relevant bits
+        self.operatingmode = response & mask  #Mask and store the operating condition (as an integer)
+        # 0 = STOP, 2 = Run manual, 3 = Run Program
+
+    def stop(self):              #Put the thermotron into stop
 
         cmd = 'S' + '\r\n'
         self.port.write(cmd.encode())
@@ -197,30 +207,57 @@ class Thermotron:
 #################################################################################################################################################
 
     def write_command(self, command):
-        
-        #print("Writing " + command + " to Thermotron\n")
-        
-        word = command + '\r\n'                        #Add mesage terminator
-        word_bytes = word.encode('ascii')                  #Convert to ASCII bytes
-        self.port.write(word_bytes)                                           #Write data to Thermotron
-        time.sleep(self.write_delay)
-        
+
+
+        if isinstance(command, list): #Concatenate a list of commands into one
+
+            word = ''
+
+            for entry in command:         #Concatenate commands
+                
+                #print("Writing " + entry + " to Thermotron\n")
+
+                word = word + entry + ';'
+
+            word = word[:-1]              #Strip final ";" cahracter
+
+            word = word + '\r\n'
+            word_bytes = word.encode('ascii')                  #Convert to ASCII bytes
+            self.port.write(word_bytes)                        #Write data to Thermotron
+            time.sleep(self.write_delay)
+
+        else:         #Write a single command
+
+            word = command + '\r\n'                        #Add mesage terminator
+            word_bytes = word.encode('ascii')              #Convert to ASCII bytes
+            self.port.write(word_bytes)                    #Write data to Thermotron
+            time.sleep(self.write_delay)
     
-    def read_response(self):
+    def read_response(self, multiple = None):
         
-        response_bytes = self.port.readline()                                 #Read bytes from thermotron (Readline reads until it sees \n or timesout based on port timeout value)
-        response_text = response_bytes.decode('ascii')     #Decode from ASCII bytes to string
-        response = response_text.replace('\r\n', '')   #Remove message terminator
+        if multiple == None:    #Read once
 
-        """if response == "":                                                    #Notify user if nothing was received within the timeout window
-
-            print("No Response received\n")
+            response_bytes = self.port.readline()                                 #Read bytes from thermotron (Readline reads until it sees \n or timesout based on port timeout value)
+            response_text = response_bytes.decode('ascii')     #Decode from ASCII bytes to string
+            response = response_text.replace('\r\n', '')   #Remove message terminator
             
-        else:                                                                 #Print message received from thermotron
-            
-            print("Received " + response + " from Thermotron\n")"""
+            """if response == "":                                                    #Notify user if nothing was received within the timeout window
 
-        return response
+                print("No Response received\n")
+                
+            else:                                                                 #Print message received from thermotron
+                
+                print("Received " + response + " from Thermotron\n")"""
+
+            return response
+        
+        else:               #Read multiple times and return a list of responses
+            response = []
+
+            for i in range(multiple):
+                response.append(self.read_response())
+            
+            return response
 
     def write_program(self, command_list):                  #Write a list of commands (individual program entries)
         
