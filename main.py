@@ -2,7 +2,7 @@ import Thermotron
 import MFC
 import Sensors
 from createProfile import Page2
-from viewProfiles import Page1
+from home import Page1
 from runProfile import Page3
 
 #import serial
@@ -40,9 +40,9 @@ class MainView(tk.Frame):
         p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = tk.Button(buttonframe, text="View My Profiles", command=p1.show)
+        b1 = tk.Button(buttonframe, text="Home", command=p1.show)
         b2 = tk.Button(buttonframe, text="Create New Profile", command=p2.show)
-        b3 = tk.Button(buttonframe, text="Run Profile", command=p3.show)
+        b3 = tk.Button(buttonframe, text="Run Profile", command=lambda:[p3.show(), p3.showProfileButtons()])
 
         b1.pack(side="left")
         b2.pack(side="left")
@@ -53,5 +53,5 @@ class MainView(tk.Frame):
 root = tk.Tk()
 main = MainView(root)
 main.pack(side="top", fill="both", expand=True)
-root.wm_geometry("400x400")
+root.wm_geometry("800x800")
 root.mainloop()
