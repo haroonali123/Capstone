@@ -24,6 +24,10 @@ class Thermotron:
  
         self.humidity = 0
 
+        #self.tempSP = 0
+
+        #self.HumiditySP = 0
+
         self.operatingmode = 0
 
         self.getStatus()
@@ -37,8 +41,7 @@ class Thermotron:
             cmd = input("Enter command here: ")
             print("")
             self.write_command(cmd)
-            self.read_response()
-            self.read_response()
+            self.read_response(print_text=True)
 
 #################################################################################################################################################
 #  Temperature and Humidity Commands
@@ -84,6 +87,8 @@ class Thermotron:
 
         # 0 = STOP, 2 = Run manual, 3 = Run Program
 
+        return self.operatingmode
+
     def getInterval(self):
         
         cmd = 'DIN'
@@ -107,7 +112,7 @@ class Thermotron:
 # Control commands
 #################################################################################################################################################
 
-    def run_manual(self, temp, humidity):   #Runs in manual until given setpoints are reached
+    def run_manual_toSP(self, temp, humidity):   #Runs in manual until given setpoints are reached
         
         self.stop()
 
@@ -125,14 +130,12 @@ class Thermotron:
         self.getTemperature()
         self.getHumidity()
 
-        while self.temp != temp and self.humidity != humidity:  
+        while self.temp != temp or self.humidity != humidity:  
 
-            self.getTemperature()        #Constantly poll for temperature and humidity until its within +/- 1 deg celsius of temp target and +/- 3 percent of humidity target
-            self.getHumidity()
+            self.getTempandHumidity()
             print("Temperature is: " + str(self.temp))
+            print("Humidity is: " + str(self.humidity))
 
-
-        
         self.stop()
 
 
@@ -146,7 +149,10 @@ class Thermotron:
             
             self.current_program = program_number    #Set the current program number
 
-            self.run_manual(program.intervals[0]["temp"], program.intervals[0]["humidity"])  #Runs the thermotron (in manual) to the initial setpoints 
+            #self.tempSP = program.intervals[0]["temp"]
+            #self.HumiditySP = program.intervals[0]["humidity"]
+
+            self.run_manual_toSP(program.intervals[0]["temp"], program.intervals[0]["humidity"])  #Runs the thermotron (in manual) to the initial setpoints 
 
 
             run_program_cmd = "RP" + str(program_number) #Run Given program number
@@ -177,12 +183,14 @@ class Thermotron:
             for program in program_number:
 
                 self.run_experiment(program)
+
+
             
 
     def poll_experiment(self):       #Poll various data during experiment
 
-        self.write_command(['DTV', 'DRV', 'DIN', 'DTL', 'DST'])
-        response = self.read_response(7)
+        self.write_command(['DTV', 'DRV', 'DIN', 'DTL', 'DST']) #Send all 5 Commands in one line
+        response = self.read_response(5)   
 
         self.temp = float(response[0])
         self.humidity = float(response[1])
@@ -195,10 +203,33 @@ class Thermotron:
         self.operatingmode = response & mask  #Mask and store the operating condition (as an integer)
         # 0 = STOP, 2 = Run manual, 3 = Run Program
 
+    def getTempandHumidity(self):
+        
+        self.write_command(['DTV', 'DRV'])
+        response = self.read_response(2)
+        self.temp = float(response[0])
+        self.humidity = float(response[1])
+
+
     def stop(self):              #Put the thermotron into stop
 
         cmd = 'S' + '\r\n'
         self.port.write(cmd.encode())
+
+    def run_program(self, program_number):
+
+        cmd = "RP" + str(program_number) #Run Given program number
+        self.write_command(cmd)
+
+    def run_manual(self, temp, humidity):
+        
+        self.write_command("RM")                     #Place thermotron in run manual mode
+
+        self.getStatus()
+        if self.operatingmode == 2:
+
+            self.setTemperature(temp)                  #Set both setpoints to desired values
+            self.setHumidity(humidity)
 
 
     
@@ -233,23 +264,23 @@ class Thermotron:
             self.port.write(word_bytes)                    #Write data to Thermotron
             time.sleep(self.write_delay)
     
-    def read_response(self, multiple = None):
+    def read_response(self, multiple = 0, print_text = False):
         
-        if multiple == None:    #Read once
+        if multiple == 0:    #Read once
 
             response_bytes = self.port.readline()                                 #Read bytes from thermotron (Readline reads until it sees \n or timesout based on port timeout value)
             response_text = response_bytes.decode('ascii')     #Decode from ASCII bytes to string
             response = response_text.replace('\r\n', '')   #Remove message terminator
             
-            """if response == "":                                                    #Notify user if nothing was received within the timeout window
+            if print_text == True:
 
-                print("No Response received\n")
-                
-            else:                                                                 #Print message received from thermotron
-                
-                print("Received " + response + " from Thermotron\n")"""
+                if response == "":                                                    #Notify user if nothing was received within the timeout window
 
-            return response
+                    print("No Response received\n")
+                    
+                else:                                                                 #Print message received from thermotron
+                    
+                    print("Received " + response + " from Thermotron\n")
         
         else:               #Read multiple times and return a list of responses
             response = []
@@ -257,7 +288,7 @@ class Thermotron:
             for i in range(multiple):
                 response.append(self.read_response())
             
-            return response
+        return response
 
     def write_program(self, command_list):                  #Write a list of commands (individual program entries)
         
