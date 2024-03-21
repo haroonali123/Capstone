@@ -51,49 +51,7 @@ class Experiment:
 
             self.create_command()  #Create Command
 
-    def delete(self):
-        
-        del self                                            #Delete experiment
 
-#################################################################################################################################################
-# Create from command line
-#################################################################################################################################################
-
-    def cmdlinecreate(self):
-        
-        self.number = int(input("Enter profile number: "))           #Set profile ID number and amount of intervals
-
-        self.interval_count = int(input("Enter number of intervals: "))
-                
-
-        for i in range(self.interval_count + 1):        #Creates a list of dictionaries storing each interval, Overall list stores entries of dictionaries which hold interval data (1 list entry = 1 dictionary = 1 interval (with defined parameters))
-                    
-            print("-"*72)
-            print("Enter values for interval number " + str(i) + "\n")
-
-            if i == 0:                                                  #Load dictionary for initial interval (interval 0)
-
-                fr1 = int(input("Enter flow rate 1: "))
-                fr2 = int(input("Enter flow rate 2: "))
-                fr3 = int(input("Enter flow rate 3: "))
-                fr4 = int(input("Enter flow rate 4: "))
-
-                temp = int(input("Enter Initial Temperature: "))  
-                humidity = int(input("Enter Initial Humidity: "))
-
-                self.intervals.append({"FR1": fr1, "FR2": fr2, "FR3": fr3, "FR4": fr4, "temp" : temp, "humidity": humidity})
-
-
-            else:
-
-                temp = int(input("Enter final Temperature: "))          #Load dictionary for all other intervals
-                humidity = int(input("Enter final Humidity: "))
-                hour = int(input("Enter amount of hours: "))
-                minute = int(input("Enter amount of minutes: "))
-
-                self.intervals.append({"temp" : temp, "humidity": humidity, "hour" : hour, "minute" : minute })
-
-        self.create_command()                                           #Create list of commands to send to thermotron
 
 #################################################################################################################################################
 # Command generation and editing for thermotron
@@ -120,9 +78,35 @@ class Experiment:
                     self.command.append("LPI" + str(i) + "," + str(self.intervals[i]["temp"]) + "," + str(self.intervals[i]["humidity"]) + ",," + str(int(self.intervals[i]["hour"])) + "," + str(int(self.intervals[i]["minute"])))
         
         return self.command
-    
 
-    """def remove_interval(self, index):
+#################################################################################################################################################
+# Legacy code
+#################################################################################################################################################
+    
+    """def print_intervals(self):
+        
+
+        for i in range(self.interval_count + 1):                          #Print out interval values
+
+            if i == 0:
+                print("Program number " + str(self.number) + "\n")
+                print("-"*72)
+                print("Interval " + str(i) + "\n")
+                print("Initial Temp = " + str(self.intervals[i]["temp"]) + '\n')
+                print("Intiial Humidity = " + str(self.intervals[i]["humidity"]) + '\n')
+
+
+            else:
+                print("-"*72)
+                print("Interval " + str(i) + "\n")
+                print("Final Temp = " + str(self.intervals[i]["temp"]) + '\n')
+                print("Final Humidity = " + str(self.intervals[i]["humidity"]) + '\n')
+                print("Hours = " + str(self.intervals[i]["hour"]) + '\n')
+                print("Minutes = " + str(self.intervals[i]["minute"]) + '\n')
+            
+        print("-"*72)
+
+    def remove_interval(self, index):
         
         if index > self.interval_count or index < 0:
             
@@ -180,45 +164,45 @@ class Experiment:
         else:                                                #Replace any other non initial interval
             
             self.intervals[index] = {"temp" : temp, "humidity": humidity, "hour" : hour, "minute" : minute }                 
-            self.create_command()                                #Re-create the command"""
+            self.create_command()                                #Re-create the command
 
-   
-
-#################################################################################################################################################
-# Print out Interval information
-#################################################################################################################################################
-    
-    def print_intervals(self):
+    def cmdlinecreate(self):
         
+        self.number = int(input("Enter profile number: "))           #Set profile ID number and amount of intervals
 
-        for i in range(self.interval_count + 1):                          #Print out interval values
+        self.interval_count = int(input("Enter number of intervals: "))
+                
 
-            if i == 0:
-                print("Program number " + str(self.number) + "\n")
-                print("-"*72)
-                print("Interval " + str(i) + "\n")
-                print("Initial Temp = " + str(self.intervals[i]["temp"]) + '\n')
-                print("Intiial Humidity = " + str(self.intervals[i]["humidity"]) + '\n')
+        for i in range(self.interval_count + 1):        #Creates a list of dictionaries storing each interval, Overall list stores entries of dictionaries which hold interval data (1 list entry = 1 dictionary = 1 interval (with defined parameters))
+                    
+            print("-"*72)
+            print("Enter values for interval number " + str(i) + "\n")
+
+            if i == 0:                                                  #Load dictionary for initial interval (interval 0)
+
+                fr1 = int(input("Enter flow rate 1: "))
+                fr2 = int(input("Enter flow rate 2: "))
+                fr3 = int(input("Enter flow rate 3: "))
+                fr4 = int(input("Enter flow rate 4: "))
+
+                temp = int(input("Enter Initial Temperature: "))  
+                humidity = int(input("Enter Initial Humidity: "))
+
+                self.intervals.append({"FR1": fr1, "FR2": fr2, "FR3": fr3, "FR4": fr4, "temp" : temp, "humidity": humidity})
 
 
             else:
-                print("-"*72)
-                print("Interval " + str(i) + "\n")
-                print("Final Temp = " + str(self.intervals[i]["temp"]) + '\n')
-                print("Final Humidity = " + str(self.intervals[i]["humidity"]) + '\n')
-                print("Hours = " + str(self.intervals[i]["hour"]) + '\n')
-                print("Minutes = " + str(self.intervals[i]["minute"]) + '\n')
-            
-        print("-"*72)
+
+                temp = int(input("Enter final Temperature: "))          #Load dictionary for all other intervals
+                humidity = int(input("Enter final Humidity: "))
+                hour = int(input("Enter amount of hours: "))
+                minute = int(input("Enter amount of minutes: "))
+
+                self.intervals.append({"temp" : temp, "humidity": humidity, "hour" : hour, "minute" : minute })
+
+        self.create_command()                                           #Create list of commands to send to thermotron
 
 
-#################################################################################################################################################
-# For testing
-#################################################################################################################################################
-
-
-#test = Experiment(2)
-
-#test.print_intervals()
-
-#print(test.command)
+    def delete(self):
+        
+        del self                                            #Delete experiment"""
