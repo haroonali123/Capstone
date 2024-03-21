@@ -18,10 +18,19 @@ class Page3(Page):
         self.runFrame = tk.Frame(self)
 
         self.runQueue = []
+
+        queue_label = tk.Label(self, text = 'Queue: ', font=('calibre',10, 'bold'))
+        queue_label.pack(side='top')
+
+        self.queueFrame.pack(side='top')
+        self.resetQueueFrame.pack(side='top')
+        
+        resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset')
+        resetQueueButton.pack(side='top')
         
     
     def showProfileButtons(self):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", 'r')
         profiles = f.readlines()
         f.close()
         
@@ -43,15 +52,6 @@ class Page3(Page):
         self.dataFrame.pack(side='left')
         self.plotFrame.pack(side='left')
         self.runFrame.pack(side='bottom', fill='x')
-
-        queue_label = tk.Label(self, text = 'Queue: ', font=('calibre',10, 'bold'))
-        queue_label.pack(side='top')
-
-        self.queueFrame.pack(side='top')
-        self.resetQueueFrame.pack(side='top')
-        
-        resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset')
-        resetQueueButton.pack(side='top')
 
 
     
@@ -81,14 +81,15 @@ class Page3(Page):
         self.runFrame.winfo_children()[0].destroy()
         self.runQueue = []
 
-
+    #Doesn't work on multiple runs
     def run(self):
 
         #Send Commands to Devices
         for profile in self.runQueue:
             MFC1_port = 'COM4'
-            #MFC1 = MFC.MFC_device(MFC1_port)
-            #MFC1.setFlowRate('01',profile[1])
+            MFC1 = MFC.MFC_device(MFC1_port)
+            MFC1.setFlowRate('02',profile[1])
+
         
         self.clear_plotFrame()
         self.clear_queueFrame()
@@ -124,7 +125,7 @@ class Page3(Page):
 
     
     def showProfile(self, profileName):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", 'r')
         profiles = f.readlines()
         f.close()
         print(profileName)

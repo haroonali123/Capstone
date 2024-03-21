@@ -1,7 +1,6 @@
 #Create a new Profile
 import tkinter as tk
 from page import Page
-from intervals import Page4
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure 
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,  
@@ -178,16 +177,14 @@ class Page2(Page):
             self.clearEntryFields()
             self.openNewWindow()
 
-
-
     def saveToCSV(self):
 
         #Need to initialize csv before
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "r")
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", "r")
         profileNum = len(f.readlines()) + 1
         f.close()
 
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "a")
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", "a")
         f.write("Profile #" + str(profileNum) + "," + ",".join(self.profile) + "\n")
         f.close()
         
