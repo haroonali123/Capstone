@@ -19,7 +19,7 @@ class Experiment:
             
             program_csv = csv.reader(file)
 
-        # Order for CSV = Program #, Flow rate 1, Flow rate 2, Flow rate 3, Flow rate 4, Initial Temp, initial humidity, Interval 1: Final Temp Final humidity Hours Minutes, Interval 2: ......)
+        # Order for CSV = Flow rate 1, Flow rate 2, Flow rate 3, Flow rate 4, Initial Temp, initial humidity, Interval 1: Final Temp Final humidity Hours Minutes, Interval 2: ......)
 
             i = 0
 
