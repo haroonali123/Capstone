@@ -180,11 +180,11 @@ class Page2(Page):
     def saveToCSV(self):
 
         #Need to initialize csv before
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", "r")
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "r")
         profileNum = len(f.readlines()) + 1
         f.close()
 
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", "a")
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "a")
         f.write("Profile #" + str(profileNum) + "," + ",".join(self.profile) + "\n")
         f.close()
         
@@ -219,6 +219,8 @@ class Page2(Page):
         fig1.suptitle('Program Graph', fontsize=12)
         plot1.plot(self.xAxis,self.yTemp, label='Temperature')
         plot1.plot(self.xAxis,self.yHum, label='Humidity')
+        plot1.set_xlabel("Time (minutes)")
+        plot1.set_ylabel("Degrees Celsius / % Humidity")
         plot1.legend()
         canvas1 = FigureCanvasTkAgg(fig1,plotFrame)   
         canvas1.draw()
@@ -311,5 +313,7 @@ class Page2(Page):
             plot.clear()
             plot.plot(self.xAxis, self.yTemp, label='Temperature')
             plot.plot(self.xAxis, self.yHum, label='Humidity')
+            plot.set_xlabel("Time (minutes)")
+            plot.set_ylabel("Degrees Celsius / % Humidity")
             plot.legend()
             canvas.draw()

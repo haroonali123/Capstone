@@ -30,7 +30,7 @@ class Page3(Page):
         
     
     def showProfileButtons(self):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", 'r')
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
         profiles = f.readlines()
         f.close()
         
@@ -78,7 +78,8 @@ class Page3(Page):
 
     def resetQueue(self):
         self.clear_queueFrame()
-        self.runFrame.winfo_children()[0].destroy()
+        for widgets in self.runFrame.winfo_children():
+            widgets.destroy()
         self.runQueue = []
 
     #Doesn't work on multiple runs
@@ -125,7 +126,7 @@ class Page3(Page):
 
     
     def showProfile(self, profileName):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Capstone_Project\\Capstone\\profiles.csv", 'r')
+        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
         profiles = f.readlines()
         f.close()
         print(profileName)
@@ -150,6 +151,8 @@ class Page3(Page):
         plot1.plot(xAxis,yTemp, label='Temperature')
         plot1.plot(xAxis,yHum, label='Humidity')
         plot1.legend()
+        plot1.set_xlabel("Time (minutes)")
+        plot1.set_ylabel("Degrees Celsius / % Humidity")
         canvas1 = FigureCanvasTkAgg(fig1,self.plotFrame)   
         canvas1.draw()
         canvas1.get_tk_widget().pack(side="top")
