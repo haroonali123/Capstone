@@ -4,7 +4,7 @@ import Experiment
 thermotron = Thermotron.Thermotron('com3')   #Initialize Thermotron object
 
 program_list = [2,5]     #Define program queue
-program_queue = [Experiment.Experiment(program)for program in program_list] #Create list of program objects
+program_queue = [Experiment.Experiment(program) for program in program_list] #Create list of program objects
 
 for program in program_queue:  #Cycle through each program
 
@@ -22,7 +22,7 @@ for program in program_queue:  #Cycle through each program
 
     while thermotron.getStatus() == 2:         #While in manual, Poll temp and humidity
 
-        if thermotron.temp != initial_temp: #(thermotron.temp > initial_temp + 0.2) or (thermotron.temp < initial_temp - 0.2): #or thermotron.humidity != initial_humidity:  
+        if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
 
                 thermotron.getTempandHumidity()
                 print("Temperature is: " + str(thermotron.temp))
@@ -36,7 +36,7 @@ for program in program_queue:  #Cycle through each program
 
     thermotron.run_program(program.number)      #Run desired progam
 
-    while(thermotron.getStatus() == 3):      #While program is running constantly poll for information
+    while(thermotron.operatingmode == 3):      #While program is running constantly poll for information
 
         thermotron.poll_experiment()
         print("Current Interval: " + str(thermotron.interval))
