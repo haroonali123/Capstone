@@ -27,6 +27,8 @@ class Thermotron:
 
         self.getStatus()
 
+        self.oktopoll = True
+
 #################################################################################################################################################
 #  Set humidity and Temperature
 #################################################################################################################################################
@@ -55,7 +57,7 @@ class Thermotron:
 
         self.operatingmode = response & mask  #Mask and store the operating condition (as an integer)
 
-        # 0 = STOP, 2 = Run manual, 3 = Run Program
+        # 0 = STOP, 2 = Run manual, 3 = Run Program, 4 = Hold Program
 
         return self.operatingmode
 
@@ -77,7 +79,8 @@ class Thermotron:
         response = int(response[4])
         mask = 0b00000111                     #Mask the rest of the status byte to only get operating condition relevant bits
         self.operatingmode = response & mask  #Mask and store the operating condition (as an integer)
-        # 0 = STOP, 2 = Run manual, 3 = Run Program
+        
+        # 0 = STOP, 2 = Run manual, 3 = Run Program, 4 = Hold program
 
     def getTempandHumidity(self):
         
@@ -108,6 +111,11 @@ class Thermotron:
         self.setTemperature(temp)                  #Set both setpoints to desired values
         self.setHumidity(humidity)
 
+    def hold(self):
+
+        cmd = "H"
+        self.write_command(cmd)                     #Place thermotron in hold mode
+        
 #################################################################################################################################################
 # Read and Write Commands
 #################################################################################################################################################

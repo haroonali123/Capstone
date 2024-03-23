@@ -20,29 +20,35 @@ for program in program_queue:  #Cycle through each program
 
     thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
 
-    while thermotron.getStatus() == 2:         #While in manual, Poll temp and humidity
+    while thermotron.operatingmode == 2:         #While in manual, Poll temp and humidity
 
-        if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
+        if thermotron.oktopoll:
+            
+            thermotron.getStatus()
 
-                thermotron.getTempandHumidity()
-                print("Temperature is: " + str(thermotron.temp))
-                #print("Humidity is: " + str(thermotron.humidity))
+            if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
 
-        else:                                   #Once both SP's are reached stop Thermotron
-            thermotron.stop()
+                    thermotron.getTempandHumidity()
+                    print("Temperature is: " + str(thermotron.temp))
+                    #print("Humidity is: " + str(thermotron.humidity))
+
+            else:                                   #Once both SP's are reached stop Thermotron
+                thermotron.stop()
 
     print("-"*72)
     print("Starting program\n")
 
     thermotron.run_program(program.number)      #Run desired progam
 
-    while(thermotron.operatingmode == 3):      #While program is running constantly poll for information
+    while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running constantly poll for information
 
-        thermotron.poll_experiment()
-        print("Current Interval: " + str(thermotron.interval))
-        print("Current Temperature: " + str(thermotron.temp))
-        print("Current Humidity: " + str(thermotron.humidity))
-        print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
+        if thermotron.oktopoll:
+
+            thermotron.poll_experiment()
+            print("Current Interval: " + str(thermotron.interval))
+            print("Current Temperature: " + str(thermotron.temp))
+            print("Current Humidity: " + str(thermotron.humidity))
+            print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
 
     thermotron.stop() #Stop thermotron once program is done
     print("Program Done")
