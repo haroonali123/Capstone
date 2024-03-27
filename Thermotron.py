@@ -96,7 +96,7 @@ class Thermotron:
     def stop(self):              #Put the thermotron into stop
 
         cmd = 'S'
-        self.port.write(cmd)
+        self.write_command(cmd)
 
     def run_program(self, program_number):
 

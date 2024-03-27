@@ -180,11 +180,15 @@ class Page2(Page):
     def saveToCSV(self):
 
         #Need to initialize csv before
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "r")
+        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "r")
+        f = open("profiles.csv", 'r')
+      
         profileNum = len(f.readlines()) + 1
         f.close()
 
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "a")
+        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "a")
+        f = open("profiles.csv", 'a')
+        
         f.write("Profile #" + str(profileNum) + "," + ",".join(self.profile) + "\n")
         f.close()
         

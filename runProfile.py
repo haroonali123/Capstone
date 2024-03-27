@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure 
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,  
 NavigationToolbar2Tk) 
+import Thermotron
+import Experiment
+import threading
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
@@ -27,10 +30,15 @@ class Page3(Page):
         
         resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset')
         resetQueueButton.pack(side='top')
+
+        self.t1 = threading.Thread(target=self.run, daemon=True)
+        #t1.start()
         
     
     def showProfileButtons(self):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
+        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
+        f = open("profiles.csv", 'r')
+
         profiles = f.readlines()
         f.close()
         
@@ -73,7 +81,7 @@ class Page3(Page):
         self.runQueue.append(profileName)
         
         if len(self.runQueue) == 1:
-            runButton = tk.Button(self.runFrame, command=self.run, text = 'Run', fg="green")
+            runButton = tk.Button(self.runFrame, command=self.t1.start, text = 'Run', fg="green")
             runButton.pack(side='top', fill="x", expand=True)
 
     def resetQueue(self):
@@ -86,10 +94,63 @@ class Page3(Page):
     def run(self):
 
         #Send Commands to Devices
+        thermotron = Thermotron.Thermotron('com3')   #Initialize Thermotron object
+
         for profile in self.runQueue:
-            MFC1_port = 'COM4'
-            MFC1 = MFC.MFC_device(MFC1_port)
-            MFC1.setFlowRate('02',profile[1])
+            #MFC1_port = 'COM4'
+            #MFC1 = MFC.MFC_device(MFC1_port)
+            #MFC1.setFlowRate('02',profile[1])
+            program_number = int(profile[0][-1])
+            print(program_number)
+
+            program = Experiment.Experiment(program_number)
+            print("-"*72)
+            print("Starting Program number: " + str(program.number) + '\n')
+
+            thermotron.stop()
+
+            initial_temp = program.intervals[0]["temp"]
+            initial_humidity = program.intervals[0]["humidity"]
+
+            print("Manually running until initial temperature: " + str(initial_temp) + '\n')
+
+            thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
+            thermotron.getStatus()
+
+            while thermotron.operatingmode == 2:         #While in manual, Poll temp and humidity
+
+                if thermotron.oktopoll:
+                    
+                    thermotron.getStatus()
+
+                    if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
+                            thermotron.getTempandHumidity()
+                            print("Temperature is: " + str(thermotron.temp))
+                            #print("Humidity is: " + str(thermotron.humidity))
+
+                    else:                                   #Once both SP's are reached stop Thermotron
+                        thermotron.stop()
+
+            print("-"*72)
+            print("Starting program number " + str(program.number))
+            
+            thermotron.write_program(program.command)
+            thermotron.run_program(program.number)      #Run desired progam
+            thermotron.getStatus()
+
+            while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running constantly poll for information
+
+                if thermotron.oktopoll:
+
+                    thermotron.poll_experiment()
+                    print("Current Interval: " + str(thermotron.interval))
+                    print("Current Temperature: " + str(thermotron.temp))
+                    print("Current Humidity: " + str(thermotron.humidity))
+                    print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
+
+            thermotron.stop() #Stop thermotron once program is done
+            print("Program Done")
+            
 
         
         self.clear_plotFrame()
@@ -126,7 +187,8 @@ class Page3(Page):
 
     
     def showProfile(self, profileName):
-        f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", 'r')
+        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\\profiles.csv", 'r')
+        f = open("profiles.csv", 'r')
         profiles = f.readlines()
         f.close()
         print(profileName)

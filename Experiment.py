@@ -9,9 +9,11 @@ class Experiment:
     
     def __init__(self, program_number):  
 
-        file_address = "programs.csv"
-        
-        self.number = program_number  #Set program number
+        #file_address = "programs.csv"
+        #self.number = program_number  #Set program number
+
+        file_address = "profiles.csv"
+        self.number = program_number
         
         self.intervals = []           #Create empty interval array
 
@@ -31,9 +33,9 @@ class Experiment:
                      
                     program_raw = [data for data in row if data not in ""]   #Remove all blank entries
 
-                    program = [float(data) for data in program_raw]        #Create list of floats from row in CSV corresponding to target program
-
-
+                    program = [float(data) for data in program_raw[1:]]        #Create list of floats from row in CSV corresponding to target program
+                    #program = [float(data) for data in program_raw]
+        
         if program == []:                      #Check to make sure program isn't blank
             
             print("Empty Program found")
@@ -42,7 +44,6 @@ class Experiment:
             self.intervals.append({"FR1": program[0], "FR2": program[1], "FR3": program[2], "FR4": program[3], "temp" : program[4], "humidity": program[5]}) #Initial Interval
 
             self.interval_count = 0
-
             for i in range(6, len(program), 4):  # Do one loop per interval (Each data entry is one of 4 per interval, starting at 6 to ignore the intial 6 for the initial interval)
                 
                 self.intervals.append({"temp" : program[i], "humidity": program[i + 1], "hour" : program[i + 2], "minute" : program[i + 3] })

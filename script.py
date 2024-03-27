@@ -19,6 +19,7 @@ for program in program_queue:  #Cycle through each program
     print("Manually running until initial temperatures\n")
 
     thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
+    thermotron.getStatus()
 
     while thermotron.operatingmode == 2:         #While in manual, Poll temp and humidity
 
@@ -27,7 +28,6 @@ for program in program_queue:  #Cycle through each program
             thermotron.getStatus()
 
             if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
-
                     thermotron.getTempandHumidity()
                     print("Temperature is: " + str(thermotron.temp))
                     #print("Humidity is: " + str(thermotron.humidity))
@@ -36,9 +36,11 @@ for program in program_queue:  #Cycle through each program
                 thermotron.stop()
 
     print("-"*72)
-    print("Starting program\n")
+    print("Starting program number " + program.number)
 
+    thermotron.write_program(program.command)
     thermotron.run_program(program.number)      #Run desired progam
+    thermotron.getStatus()
 
     while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running constantly poll for information
 
