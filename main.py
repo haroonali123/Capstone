@@ -1,6 +1,7 @@
 import Thermotron
 import MFC
 import Sensors
+
 from createProfile import Page2
 from home import Page1
 from runProfile import Page3
@@ -12,10 +13,14 @@ import tkinter as tk
 #Enumerate ports from hub.
 MFC1_port = 'COM4'
 MFC2_port = ''
+MFC3_port = ''
+MFC4_port = ''
 Thermotron_port = ''
 Sensor1 = ''
 Sensor2 = ''
 Sensor3 = ''
+
+# enumerate all device ports
 
 #Connect to all devices
 #MFC1 = MFC.MFC_device(MFC1_port)
