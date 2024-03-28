@@ -1,6 +1,7 @@
 # Python port scanning script
 
 import serial.tools.list_ports
+import json
 
 def scan_usb_ports():
     usb_devices = []
@@ -30,5 +31,17 @@ def print_usb_devices(usb_devices):
         print("PID:", device["device_pid"])
         print("Serial Number:", device["device_serial_number"])
         print()
+
+def getDevicePorts(usb_devices):
+    with open('devices.json') as json_file:
+        data = json.load(json_file)
+
+    for device in usb_devices:
+        if "USB-SERIAL CH340" in device["device_description"]:
+            MFC_PORT = device["device_name"]
+        elif "Prolific PL2303GT USB Serial COM Port" in device["device_description"]:
+            THERMOTRON_PORT = device["device_name"]
+
+    return MFC_PORT,THERMOTRON_PORT
 
 # end of script

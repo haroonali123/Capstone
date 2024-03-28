@@ -8,6 +8,9 @@ NavigationToolbar2Tk)
 import Thermotron
 import Experiment
 import threading
+import port_scanner
+import Sensors
+import os
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
@@ -93,14 +96,26 @@ class Page3(Page):
     #Doesn't work on multiple runs
     def run(self):
 
+        usb_devices, num_devices = port_scanner.scan_usb_ports()
+        port_scanner.print_usb_devices(usb_devices)
+        MFC_PORT, THERMOTRON_PORT = port_scanner.getDevicePorts(usb_devices)
+        print(MFC_PORT, THERMOTRON_PORT)
+
         #Send Commands to Devices
-        thermotron = Thermotron.Thermotron('com3')   #Initialize Thermotron object
+        thermotron = Thermotron.Thermotron(THERMOTRON_PORT)   #Initialize Thermotron object
+        MFC1 = MFC.MFC_device(MFC_PORT)
+
+        #Hard coded
+        sensor1 = Sensors.Sensors("COM5")
+        sensor2 = Sensors.Sensors("COM9")
+
 
         for profile in self.runQueue:
             #MFC1_port = 'COM4'
-            #MFC1 = MFC.MFC_device(MFC1_port)
-            #MFC1.setFlowRate('02',profile[1])
+            
+            MFC1.setFlowRate('02',profile[1])
             program_number = int(profile[0][-1])
+            MFC1.setFlowRate('04',profile[2])
             print(program_number)
 
             program = Experiment.Experiment(program_number)
@@ -141,7 +156,9 @@ class Page3(Page):
             while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running constantly poll for information
 
                 if thermotron.oktopoll:
-
+                    
+                    sensor1.singleMeasurement()
+                    sensor2.singleMeasurement()
                     thermotron.poll_experiment()
                     print("Current Interval: " + str(thermotron.interval))
                     print("Current Temperature: " + str(thermotron.temp))

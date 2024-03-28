@@ -44,6 +44,6 @@ class Sensors:
         self.port.write(command.encode())
         self.write_or_print(15)    
     
-my_sensor = Sensors("COM3", os.getcwd())
+#my_sensor = Sensors("COM3", os.getcwd())
 # my_sensor.e_command()
-my_sensor.singleMeasurement()
+#my_sensor.singleMeasurement()
