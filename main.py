@@ -53,7 +53,8 @@ class MainView(tk.Frame):
         b2.pack(side="left")
         b3.pack(side="left")
 
-        #p1.show()
+        p3.show()
+        p3.showProfileButtons()
 
 root = tk.Tk()
 main = MainView(root)
