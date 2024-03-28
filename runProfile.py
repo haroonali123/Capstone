@@ -118,45 +118,41 @@ class Page3(Page):
             MFC1.setFlowRate('04',profile[2])
             print(program_number)
 
-            program = Experiment.Experiment(program_number)
-            print("-"*72)
+            program = Experiment.Experiment(program_number)                      #Create experiment object
+            print("-"*72)                                                        
             print("Starting Program number: " + str(program.number) + '\n')
 
-            thermotron.stop()
+            thermotron.stop()                                                    #Place in stop to stop initially
 
-            initial_temp = program.intervals[0]["temp"]
+            initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
             initial_humidity = program.intervals[0]["humidity"]
 
             print("Manually running until initial temperature: " + str(initial_temp) + '\n')
 
             thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
-            thermotron.getStatus()
 
             while thermotron.operatingmode == 2:         #While in manual, Poll temp and humidity
-
-                if thermotron.oktopoll:
                     
-                    thermotron.getStatus()
+                thermotron.getStatus()
 
-                    if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
-                            thermotron.getTempandHumidity()
-                            print("Temperature is: " + str(thermotron.temp))
-                            #print("Humidity is: " + str(thermotron.humidity))
+                if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
+                        thermotron.getTempandHumidity()
+                        print("Temperature is: " + str(thermotron.temp))
+                        #print("Humidity is: " + str(thermotron.humidity))
 
-                    else:                                   #Once both SP's are reached stop Thermotron
-                        thermotron.stop()
+                else:                                   #Once both SP's are reached stop Thermotron
+                    thermotron.stop()
 
+        
             print("-"*72)
             print("Starting program number " + str(program.number))
             
             thermotron.write_program(program.command)
             thermotron.run_program(program.number)      #Run desired progam
-            thermotron.getStatus()
 
-            while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running constantly poll for information
-
-                if thermotron.oktopoll:
-                    
+            while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
+                
+                if(thermotron.operatingmode == 3):
                     sensor1.singleMeasurement()
                     sensor2.singleMeasurement()
                     thermotron.poll_experiment()
@@ -167,7 +163,8 @@ class Page3(Page):
 
             thermotron.stop() #Stop thermotron once program is done
             print("Program Done")
-            
+            thermotron.getStatus()
+
 
         
         self.clear_plotFrame()
