@@ -11,6 +11,8 @@ import threading
 import port_scanner
 import Sensors
 import os
+import random
+import time
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
@@ -19,6 +21,7 @@ class Page3(Page):
         self.profileList = []
         self.dataFrame = tk.Frame(self)
         self.plotFrame = tk.Frame(self)
+        self.monitorFrame = tk.Frame(self)
         self.queueFrame = tk.Frame(self)
         self.resetQueueFrame = tk.Frame(self)
         self.runFrame = tk.Frame(self)
@@ -34,8 +37,57 @@ class Page3(Page):
         resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset')
         resetQueueButton.pack(side='top')
 
+        self.flowRate1_frame = tk.Frame(self.monitorFrame)
+        self.flowRate2_frame = tk.Frame(self.monitorFrame)
+        self.flowRate3_frame = tk.Frame(self.monitorFrame)
+        self.flowRate4_frame = tk.Frame(self.monitorFrame)
+
+        self.temp_frame = tk.Frame(self.monitorFrame)
+        self.humidity_frame = tk.Frame(self.monitorFrame)
+        self.interval_frame = tk.Frame(self.monitorFrame)
+        self.intervalTimeLeft_frame = tk.Frame(self.monitorFrame)
+
+        tempValue_label = tk.Label(self.temp_frame, text = 'Temperature: ', font=('calibre',10, 'bold'))
+        humidityValue_label = tk.Label(self.humidity_frame, text = 'Humidity: ', font=('calibre',10, 'bold'))
+        intervalValue_label = tk.Label(self.interval_frame, text = 'Interval: ', font=('calibre',10, 'bold'))
+        timeLeftValue_label = tk.Label(self.intervalTimeLeft_frame, text = 'Time left in Interval: ', font=('calibre',10, 'bold'))
+
+        flowRate1_label = tk.Label(self.flowRate1_frame, text = 'Flow Rate 1: ', font=('calibre',10, 'bold'))
+        flowRate2_label = tk.Label(self.flowRate2_frame, text = 'Flow Rate 2: ', font=('calibre',10, 'bold'))
+        flowRate3_label = tk.Label(self.flowRate3_frame, text = 'Flow Rate 3: ', font=('calibre',10, 'bold'))
+        flowRate4_label = tk.Label(self.flowRate4_frame, text = 'Flow Rate 4: ', font=('calibre',10, 'bold'))
+
+        self.flowRate1_frame.pack()
+        self.flowRate2_frame.pack()
+        self.flowRate3_frame.pack()
+        self.flowRate4_frame.pack()
+
+        self.temp_frame.pack()
+        self.humidity_frame.pack()
+        self.interval_frame.pack()
+        self.intervalTimeLeft_frame.pack()
+
+        flowRate1_label.pack(side='left')
+        flowRate2_label.pack(side='left')
+        flowRate3_label.pack(side='left')
+        flowRate4_label.pack(side='left')
+
+        tempValue_label.pack(side='left')
+        humidityValue_label.pack(side='left')
+        intervalValue_label.pack(side='left')
+        timeLeftValue_label.pack(side='left')
+
+        self.flowRate1 = random.randint(1,100)
+        self.flowRate2 = random.randint(1,100)
+        self.flowRate3 = random.randint(1,100)
+        self.flowRate4 = random.randint(1,100)
+
         self.t1 = threading.Thread(target=self.run, daemon=True)
-        #t1.start()
+        self.t2 = threading.Thread(target=self.updateLabels, daemon=True)
+        self.t2.start()
+        self.t3 = threading.Thread(target=self.updateNumbers, daemon=True)
+        self.t3.start()
+
         
     
     def showProfileButtons(self):
@@ -62,10 +114,50 @@ class Page3(Page):
         
         self.dataFrame.pack(side='left')
         self.plotFrame.pack(side='left')
+        self.monitorFrame.pack(side='left')
         self.runFrame.pack(side='bottom', fill='x')
 
+        '''self.flowRate1_frame = tk.Frame(self.monitorFrame)
+        self.flowRate2_frame = tk.Frame(self.monitorFrame)
+        self.flowRate3_frame = tk.Frame(self.monitorFrame)
+        self.flowRate4_frame = tk.Frame(self.monitorFrame)
 
-    
+        self.temp_frame = tk.Frame(self.monitorFrame)
+        self.humidity_frame = tk.Frame(self.monitorFrame)
+        self.interval_frame = tk.Frame(self.monitorFrame)
+        self.intervalTimeLeft_frame = tk.Frame(self.monitorFrame)
+
+        tempValue_label = tk.Label(self.temp_frame, text = 'Temperature: ', font=('calibre',10, 'bold'))
+        humidityValue_label = tk.Label(self.humidity_frame, text = 'Humidity: ', font=('calibre',10, 'bold'))
+        intervalValue_label = tk.Label(self.interval_frame, text = 'Interval: ', font=('calibre',10, 'bold'))
+        timeLeftValue_label = tk.Label(self.intervalTimeLeft_frame, text = 'Time left in Interval: ', font=('calibre',10, 'bold'))
+
+        flowRate1_label = tk.Label(self.flowRate1_frame, text = 'Flow Rate 1: ', font=('calibre',10, 'bold'))
+        flowRate2_label = tk.Label(self.flowRate2_frame, text = 'Flow Rate 2: ', font=('calibre',10, 'bold'))
+        flowRate3_label = tk.Label(self.flowRate3_frame, text = 'Flow Rate 3: ', font=('calibre',10, 'bold'))
+        flowRate4_label = tk.Label(self.flowRate4_frame, text = 'Flow Rate 4: ', font=('calibre',10, 'bold'))
+
+        self.flowRate1_frame.pack()
+        self.flowRate2_frame.pack()
+        self.flowRate3_frame.pack()
+        self.flowRate4_frame.pack()
+
+        self.temp_frame.pack()
+        self.humidity_frame.pack()
+        self.interval_frame.pack()
+        self.intervalTimeLeft_frame.pack()
+
+        flowRate1_label.pack(side='left')
+        flowRate2_label.pack(side='left')
+        flowRate3_label.pack(side='left')
+        flowRate4_label.pack(side='left')
+
+        tempValue_label.pack(side='left')
+        humidityValue_label.pack(side='left')
+        intervalValue_label.pack(side='left')
+        timeLeftValue_label.pack(side='left')'''
+
+
     def clear_dataFrame(self):
         for widgets in self.dataFrame.winfo_children():
             widgets.destroy()
@@ -86,6 +178,40 @@ class Page3(Page):
         if len(self.runQueue) == 1:
             runButton = tk.Button(self.runFrame, command=self.t1.start, text = 'Run', fg="green")
             runButton.pack(side='top', fill="x", expand=True)
+
+    def updateNumbers(self):
+        while(1):
+            self.flowRate1 = random.randint(1,100)
+            self.flowRate2 = random.randint(1,100)
+            self.flowRate3 = random.randint(1,100)
+            self.flowRate4 = random.randint(1,100)
+            time.sleep(1)
+
+    def updateLabels(self):
+
+        while(1):
+
+            #flowRate1 = MFC1.getFlowRate('02')
+            #flowRate2 = MFC1.getFlowRate('04')
+            #flowRate3 = MFC1.getFlowRate('06')
+            #flowRate4 = MFC1.getFlowRate('08')
+
+            flowRate1Value_label = tk.Label(self.flowRate1_frame, text = self.flowRate1, font=('calibre',10, 'bold'))
+            flowRate2Value_label = tk.Label(self.flowRate2_frame, text = self.flowRate2, font=('calibre',10, 'bold'))
+            flowRate3Value_label = tk.Label(self.flowRate3_frame, text = self.flowRate3, font=('calibre',10, 'bold'))
+            flowRate4Value_label = tk.Label(self.flowRate4_frame, text = self.flowRate4, font=('calibre',10, 'bold'))
+
+            flowRate1Value_label.pack(side='top')
+            flowRate2Value_label.pack(side='top')
+            flowRate3Value_label.pack(side='top')
+            flowRate4Value_label.pack(side='top')
+            
+            time.sleep(1)
+
+            self.flowRate1_frame.winfo_children()[1].destroy()
+            self.flowRate2_frame.winfo_children()[1].destroy()
+            self.flowRate3_frame.winfo_children()[1].destroy()
+            self.flowRate4_frame.winfo_children()[1].destroy()
 
     def resetQueue(self):
         self.clear_queueFrame()
@@ -108,7 +234,6 @@ class Page3(Page):
         #Hard coded
         sensor1 = Sensors.Sensors("COM5")
         sensor2 = Sensors.Sensors("COM9")
-
 
         for profile in self.runQueue:
             #MFC1_port = 'COM4'
@@ -168,7 +293,18 @@ class Page3(Page):
                 
                 if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
 
+<<<<<<< HEAD
                     sensor1.singleMeasurement()         #Poll thermotron and Sensors
+=======
+                if thermotron.oktopoll:
+                    
+                    self.flowRate1 = random.randint(1,100)
+                    self.flowRate2 = random.randint(1,100)
+                    self.flowRate3 = random.randint(1,100)
+                    self.flowRate4 = random.randint(1,100)
+                    
+                    sensor1.singleMeasurement()
+>>>>>>> f57654b0baf80e66a06ca18d38c050aae5e7d81f
                     sensor2.singleMeasurement()
                     thermotron.poll_experiment()
 
