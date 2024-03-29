@@ -116,34 +116,48 @@ class Page3(Page):
             MFC1.setFlowRate('02',profile[1])
             program_number = int(profile[0][-1])
             MFC1.setFlowRate('04',profile[2])
-            print(program_number)
 
             program = Experiment.Experiment(program_number)                      #Create experiment object
+            
             print("-"*72)                                                        
             print("Starting Program number: " + str(program.number) + '\n')
 
-            thermotron.stop()                                                    #Place in stop to stop initially
+            thermotron.stop()                                                    #Place in stop initially
 
             initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
             initial_humidity = program.intervals[0]["humidity"]
 
             print("Manually running until initial temperature: " + str(initial_temp) + '\n')
+            print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
 
             thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
 
-            while thermotron.operatingmode == 2:         #While in manual, Poll temp and humidity
+            setpoint_ok_count = 0
+
+            while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < 100:  #While in manual/hold and setpoints have not been reached for 100 ticks
+                
+                if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
+
+                    thermotron.getStatus()
+                    thermotron.getTempandHumidity()
+                    print("Temperature is: " + str(thermotron.temp))
+                    #print("Humidity is: " + str(thermotron.humidity))
+
+                    if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
+                        
+                        setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
                     
-                thermotron.getStatus()
+                    else:
+                        setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
+            
+            if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
 
-                if thermotron.temp != initial_temp: #or thermotron.humidity != initial_humidity:  
-                        thermotron.getTempandHumidity()
-                        print("Temperature is: " + str(thermotron.temp))
-                        #print("Humidity is: " + str(thermotron.humidity))
+                thermotron.GUI_stop_request == False
+                print("Program stopped by GUI\n")
+                break
 
-                else:                                   #Once both SP's are reached stop Thermotron
-                    thermotron.stop()
+            self.stop()  
 
-        
             print("-"*72)
             print("Starting program number " + str(program.number))
             
@@ -152,18 +166,25 @@ class Page3(Page):
 
             while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                 
-                if(thermotron.operatingmode == 3):
-                    sensor1.singleMeasurement()
+                if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
+
+                    sensor1.singleMeasurement()         #Poll thermotron and Sensors
                     sensor2.singleMeasurement()
                     thermotron.poll_experiment()
+
                     print("Current Interval: " + str(thermotron.interval))
                     print("Current Temperature: " + str(thermotron.temp))
                     print("Current Humidity: " + str(thermotron.humidity))
                     print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
 
+            if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
+
+                thermotron.GUI_stop_request == False
+                print("Program stopped by GUI\n")
+                break
+
             thermotron.stop() #Stop thermotron once program is done
             print("Program Done")
-            thermotron.getStatus()
 
 
         
