@@ -292,11 +292,6 @@ class Page3(Page):
             while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                 
                 if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
-
-<<<<<<< HEAD
-                    sensor1.singleMeasurement()         #Poll thermotron and Sensors
-=======
-                if thermotron.oktopoll:
                     
                     self.flowRate1 = random.randint(1,100)
                     self.flowRate2 = random.randint(1,100)
@@ -304,7 +299,6 @@ class Page3(Page):
                     self.flowRate4 = random.randint(1,100)
                     
                     sensor1.singleMeasurement()
->>>>>>> f57654b0baf80e66a06ca18d38c050aae5e7d81f
                     sensor2.singleMeasurement()
                     thermotron.poll_experiment()
 
