@@ -25,6 +25,7 @@ class Page3(Page):
         self.queueFrame = tk.Frame(self)
         self.resetQueueFrame = tk.Frame(self)
         self.runFrame = tk.Frame(self)
+        self.utilityFrame = tk.Frame(self)
 
         self.runQueue = []
 
@@ -34,9 +35,10 @@ class Page3(Page):
         self.queueFrame.pack(side='top')
         self.resetQueueFrame.pack(side='top')
         
-        resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset')
-        resetQueueButton.pack(side='top')
+        resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset Queue')
+        resetQueueButton.pack(side='left')
 
+        
         self.flowRate1_frame = tk.Frame(self.monitorFrame)
         self.flowRate2_frame = tk.Frame(self.monitorFrame)
         self.flowRate3_frame = tk.Frame(self.monitorFrame)
@@ -112,11 +114,12 @@ class Page3(Page):
 
             self.profileList.append(data[0])
         
+        self.utilityFrame.pack(side='top')
+        self.runFrame.pack(side='top')
         self.dataFrame.pack(side='left')
         self.plotFrame.pack(side='left')
         self.monitorFrame.pack(side='left')
-        self.runFrame.pack(side='bottom', fill='x')
-
+        
         '''self.flowRate1_frame = tk.Frame(self.monitorFrame)
         self.flowRate2_frame = tk.Frame(self.monitorFrame)
         self.flowRate3_frame = tk.Frame(self.monitorFrame)
@@ -169,6 +172,11 @@ class Page3(Page):
     def clear_queueFrame(self):
         for widgets in self.queueFrame.winfo_children():
             widgets.destroy()
+        self.update()
+    
+    def clear_utilityFrame(self):
+        for widgets in self.utilityFrame.winfo_children():
+            widgets.destroy()
 
     def addToQueue(self, profileName):
         profileLabel = tk.Label(self.queueFrame, text = profileName[0], font=('calibre',10, 'bold'), fg='blue')
@@ -218,9 +226,12 @@ class Page3(Page):
         for widgets in self.runFrame.winfo_children():
             widgets.destroy()
         self.runQueue = []
+        self.update()
 
     #Doesn't work on multiple runs
     def run(self):
+
+        self.resetQueue()
 
         usb_devices, num_devices = port_scanner.scan_usb_ports()
         port_scanner.print_usb_devices(usb_devices)
@@ -234,6 +245,15 @@ class Page3(Page):
         #Hard coded
         sensor1 = Sensors.Sensors("COM5")
         sensor2 = Sensors.Sensors("COM9")
+
+        stopButton = tk.Button(self.utilityFrame, command=thermotron.GUI_Request("STOP"), text = 'Stop Experiment')
+        stopButton.pack(side='left')
+
+        pauseButton = tk.Button(self.utilityFrame, command=thermotron.GUI_Request("HOLD"), text = 'Pause Experiment')
+        pauseButton.pack(side='left')
+
+        continueButton = tk.Button(self.utilityFrame, command=thermotron.GUI_Request("RUN"), text = 'Continue Experiment')
+        continueButton.pack(side='left')
 
         for profile in self.runQueue:
             #MFC1_port = 'COM4'
@@ -321,6 +341,7 @@ class Page3(Page):
         self.clear_plotFrame()
         self.clear_queueFrame()
         self.clear_dataFrame()
+        self.clear_utilityFrame()
 
     def getXY(self, data):
         
