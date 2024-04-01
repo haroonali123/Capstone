@@ -17,6 +17,8 @@ class Experiment:
         
         self.intervals = []           #Create empty interval array
 
+        program = []
+
         with open(file_address, 'r') as file:
             
             program_csv = csv.reader(file)
@@ -27,7 +29,7 @@ class Experiment:
 
 
                 if int(row[0][-1]) == program_number:  #Itearate until requested program is found
-
+                    
                     program = row
 
 
