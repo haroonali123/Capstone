@@ -5,6 +5,9 @@
 #The number of sensors/devices plugged in needs to be variable
 #Allow 0 time to be used DONE
 #Actually poll MFC, still using random numbers
+#create profile submit button does not reapear
+#Implement some sort of testing sequence to ensure that the MFC, sensors, and thermo are connected
+#Most likelt will only have to do this for the thermotron, since the other devices will error on instantiation
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt
