@@ -74,14 +74,19 @@ class Thermotron:
         
         if self.stop_comms == False:
 
-            self.write_command(['DTV', 'DRV', 'DIN', 'DTL', 'DST']) #Send all 5 Commands in one line
-            response = self.read_response(5)                        #Read all 5 individual responses
+            self.write_command(['DTV', 'DRV', 'DIN', 'DTL', 'DST', 'DIT']) #Send all 6 Commands in one line
+            response = self.read_response(6)                        #Read all 6 individual responses
 
             self.temp = float(response[0])            #Assign all requested variables
             self.humidity = float(response[1])
             self.interval = int(response[2])
-            self.intervaltimeleft = response[3]
             
+            timeleft = response[3].split(":")
+            self.intervaltimeleft = int(timeleft[0])*60 + int(timeleft[1])
+
+            timetotal = response[5].split(":")
+            self.intervaltimetotal = int(timetotal[0])*60 + int(timetotal[1])
+
             #Mimic Get status method
             response = int(response[4])
             mask = 0b00000111                     
@@ -251,3 +256,19 @@ class Thermotron:
                 response.append(self.read_response())
             
         return response
+    
+
+    def write_read_manual(self):
+        
+        while True:
+            cmd = input("Type command here: ")
+            self.write_command(cmd)
+
+            response = self.read_response(print_text= True)
+
+            time = response.split(":")
+            minutes = int(time[0])*60 + int(time[1])
+          
+            print(minutes)
+
+            print("-"*72)
