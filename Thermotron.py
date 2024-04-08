@@ -149,6 +149,12 @@ class Thermotron:
             self.write_command(cmd)
             self.getStatus() 
 
+    def stop_run_program(self,program_number):
+
+        if self.stop_comms == False:
+
+            cmd = ["S", "RP" + str(program_number)] #Run Given program number
+            self.write_command(cmd)
 
     def run_manual(self, temp, humidity):
         
