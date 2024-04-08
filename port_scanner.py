@@ -33,15 +33,24 @@ def print_usb_devices(usb_devices):
         print()
 
 def getDevicePorts(usb_devices):
-    with open('devices.json') as json_file:
+    with open('devices.json', 'r') as json_file:
         data = json.load(json_file)
 
+    sensorCount = 1
     for device in usb_devices:
         if "USB-SERIAL CH340" in device["device_description"]:
             MFC_PORT = device["device_name"]
+            data["MFC"] = device["device_name"]
         elif "Prolific PL2303GT USB Serial COM Port" in device["device_description"]:
             THERMOTRON_PORT = device["device_name"]
+            data["Thermotron"] = device["device_name"]
+        elif "Silicon Labs CP210x UART Bridge" in device["device_description"]:
+            data["Sensor" + str(sensorCount)] = device["device_name"]
+            sensorCount += 1
+    
+    with open('devices.json', 'w') as json_file:
+        json.dump(data,json_file)
 
-    return MFC_PORT,THERMOTRON_PORT
+    return MFC_PORT,THERMOTRON_PORT, data
 
 # end of script

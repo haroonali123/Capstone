@@ -1,0 +1,5 @@
+{
+    "MFC" : "COM1",
+    "Thermotron" : "COM2",
+    "Sensor1" : "COM3"
+}
