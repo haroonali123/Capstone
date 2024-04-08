@@ -12,6 +12,8 @@ import Sensors
 import random
 import time
 import json
+import datetime
+import csv
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
@@ -99,7 +101,6 @@ class Page3(Page):
         self.t1 = threading.Thread(target=self.run, daemon=True)
         self.t1.start()
         self.t2 = threading.Thread(target=self.updateLabels, daemon=True)
-        #self.t4 = threading.Thread(target=self.checkExperiment, daemon=True)
         self.t2.start()
         #self.t3.start()
 
@@ -218,7 +219,7 @@ class Page3(Page):
         self.runQueue = []
         self.update()
     
-    def resetQueueFrame(self):
+    def resetQueueRun(self):
         self.clear_queueFrame()
         for widgets in self.runFrame.winfo_children():
             widgets.destroy()
@@ -260,14 +261,14 @@ class Page3(Page):
         while(1):
 
             time.sleep(1)
-
             if (self.experimentRunning):
+
 
                 self.clear_plotFrame()
                 self.clear_queueFrame()
                 self.clear_dataFrame()
 
-                self.resetQueueFrame()# needs to be fixed
+                self.resetQueueRun()
 
                 usb_devices, num_devices = port_scanner.scan_usb_ports()
                 port_scanner.print_usb_devices(usb_devices)
@@ -277,124 +278,155 @@ class Page3(Page):
                 #Send Commands to Devices
                 thermotron = Thermotron.Thermotron(THERMOTRON_PORT)   #Initialize Thermotron object
                 MFC1 = MFC.MFC_device(MFC_PORT)
-
+                print(THERMOTRON_PORT)
                 sensors = []
-                for device in data:
+
+                '''for device in data:
                     if "Sensor" in device:
                         sensor = Sensors.Sensors(data[device])
-                        sensors.append(sensor)
+                        sensors.append(sensor)'''
 
-                stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp, thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
+                stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp(), thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
                 stopButton.pack(side='left')
 
-                pauseButton = tk.Button(self.utilityFrame, command=lambda:[self.pauseExp, thermotron.GUI_Request("HOLD")], text = 'Pause Experiment')
+                pauseButton = tk.Button(self.utilityFrame, command=lambda:[self.pauseExp(), thermotron.GUI_Request("HOLD")], text = 'Pause Experiment')
                 pauseButton.pack(side='left')
 
-                continueButton = tk.Button(self.utilityFrame, command=lambda:[self.runExp, thermotron.GUI_Request("RUN")], text = 'Continue Experiment')
+                continueButton = tk.Button(self.utilityFrame, command=lambda:[self.runExp(), thermotron.GUI_Request("RUN")], text = 'Continue Experiment')
                 continueButton.pack(side='left')
 
                 self.monitorFrame.pack()
-
-                while(1):
                     
-                    for profile in self.runQueue:
-                        #MFC1_port = 'COM4'
+                for profile in self.runQueue:
+                    #MFC1_port = 'COM4'
+                    
+                    
+                    MFC1.setFlowRate('02',profile[1])
+                    program_number = int(profile[0][-1])
+                    MFC1.setFlowRate('04',profile[2])
+
+                    program = Experiment.Experiment(program_number)                      #Create experiment object
+                    
+                    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
+                    file_path = "./Thermotron_data/Thermotron_data_" + current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
+
+                    first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
+                    headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
+
+                    file = open(file_path, mode='a', newline='')
+
+                    writer = csv.writer(file)
+
+                    writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
+                    writer.writerow(headers)     #Write the headers for the data
+                    writer.writerow("")
+                    
+                    print("-"*72)                                                        
+                    print("Starting Program number: " + str(program.number) + '\n')
+
+                    thermotron.stop()                                                    #Place in stop initially
+                    
+                    thermotron.write_program(program.command)                            #Write program to Thermotron
+
+                    initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
+                    initial_humidity = program.intervals[0]["humidity"]
+
+                    print("Manually running until initial temperature: " + str(initial_temp) + '\n')
+                    print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
+
+                    thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
+
+                    setpoint_ok_count = 0
+                    
+                    start_time = datetime.datetime.now()
+
+                    setpoint_ok_max = 1500
+
+                    while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                         
-                        MFC1.setFlowRate('02',profile[1])
-                        program_number = int(profile[0][-1])
-                        MFC1.setFlowRate('04',profile[2])
+                        if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
 
-                        program = Experiment.Experiment(program_number)                      #Create experiment object
-                        
-                        print("-"*72)                                                        
-                        print("Starting Program number: " + str(program.number) + '\n')
+                            thermotron.getStatus()
+                            thermotron.getTempandHumidity()
+                            print("Temperature is: " + str(thermotron.temp))
+                            #print("Humidity is: " + str(thermotron.humidity))
 
-                        thermotron.stop()                                                    #Place in stop initially
-
-                        initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
-                        initial_humidity = program.intervals[0]["humidity"]
-
-                        print("Manually running until initial temperature: " + str(initial_temp) + '\n')
-                        print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
-
-                        thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
-
-                        setpoint_ok_count = 0
-
-                        while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < 100:  #While in manual/hold and setpoints have not been reached for 100 ticks
-                            
-                            if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
-
-                                thermotron.getStatus()
-                                thermotron.getTempandHumidity()
-                                print("Temperature is: " + str(thermotron.temp))
-                                #print("Humidity is: " + str(thermotron.humidity))
-
-                                if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
-                                    
-                                    setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
+                            if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
                                 
-                                else:
-                                    setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
-                        
-                        if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
-
-                            thermotron.GUI_stop_request == False
-                            print("Program stopped by GUI\n")
-                            self.stopExp()
-                            break
-
-                        thermotron.stop()  
-
-                        print("-"*72)
-                        print("Starting program number " + str(program.number))
-                        
-                        thermotron.write_program(program.command)
-                        thermotron.run_program(program.number)      #Run desired progam
-
-                        while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
+                                setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
                             
-                            if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
+                            else:
                                 
-                                self.flowRate1 = random.randint(1,100)
-                                self.flowRate2 = random.randint(1,100)
-                                self.flowRate3 = random.randint(1,100)
-                                self.flowRate4 = random.randint(1,100)
-                                
-                                for sensor in sensors:
-                                    sensor.singleMeasurement()
-                                    sensor.singleMeasurement()
+                                print("Setpoint ok, tick " + str(setpoint_ok_count) + "/" + str(setpoint_ok_max) + '\n')
+                                setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
+                    
+                    if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
 
-                                thermotron.poll_experiment()
+                        thermotron.GUI_stop_request == False
+                        print("Program stopped by GUI\n")
+                        self.stopExp()
+                        break
 
-                                print("Current Interval: " + str(thermotron.interval))
-                                print("Current Temperature: " + str(thermotron.temp))
-                                print("Current Humidity: " + str(thermotron.humidity))
-                                print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
+                    
+                    end_time = datetime.datetime.now()
 
-                                self.temp = thermotron.temp
-                                self.humidity = thermotron.humidity
-                                self.interval = thermotron.interval
-                                self.time = thermotron.intervaltimeleft
+                    print("Manual run took: " + str(end_time - start_time) + '\n')
+                    print("-"*72)
+                    print("Starting program number " + str(program.number))
+                    
+                    thermotron.stop_run_program(program.number)      #Stop, then run selected program
+                    thermotron.getStatus()
+
+                    while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
+                        
+                        if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
                             
-                            time.sleep(1)
+                            self.flowRate1 = random.randint(1,100)
+                            self.flowRate2 = random.randint(1,100)
+                            self.flowRate3 = random.randint(1,100)
+                            self.flowRate4 = random.randint(1,100)
+                            
+                            #for sensor in sensors:
+                                #sensor.singleMeasurement()
 
-                        if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
+                            thermotron.poll_experiment()
 
-                            thermotron.GUI_stop_request == False
+                            print("Current Interval: " + str(thermotron.interval))
+                            print("Current Temperature: " + str(thermotron.temp))
+                            print("Current Humidity: " + str(thermotron.humidity))
+                            print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
 
-                            print("Program stopped by GUI\n")
-                            self.stopExp()
-                            break
+                            time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
+                            print(str(time_in_interval) + "out of " + str(thermotron.intervaltimetotal) + " minutes\n")
+                            
+                            writer.writerow([thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity])
 
-                        thermotron.stop() #Stop thermotron once program is done
-                        print("Program Done")
+
+                            self.temp = thermotron.temp
+                            self.humidity = thermotron.humidity
+                            self.interval = thermotron.interval
+                            self.time = thermotron.intervaltimeleft
+                        
+                        time.sleep(1)
+
+                    if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
+
+                        thermotron.GUI_stop_request == False
+
+                        print("Program stopped by GUI\n")
+                        self.stopExp()
+                        break
+
+                    file.close()
+                    thermotron.stop() #Stop thermotron once program is done
+                    print("Program Done")
                 
                 
                 self.resetQueue()
                 self.clear_utilityFrame()
                 self.showProfile()
                 self.monitorFrame.pack_forget()
+                self.stopExp()
                 
             else:
                 time.sleep(1)
