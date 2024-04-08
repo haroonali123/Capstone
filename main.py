@@ -45,7 +45,7 @@ class MainView(tk.Frame):
         p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
         p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = tk.Button(buttonframe, text="Home", command=p1.show)
+        b1 = tk.Button(buttonframe, text="Remove Profiles", command=lambda:[p1.show(), p1.showProfileButtons()])
         b2 = tk.Button(buttonframe, text="Create New Profile", command=p2.show)
         b3 = tk.Button(buttonframe, text="Run Profile", command=lambda:[p3.show(), p3.showProfileButtons()])
 
@@ -58,6 +58,7 @@ class MainView(tk.Frame):
 
 root = tk.Tk()
 main = MainView(root)
+root.title("ESI Labview")
 main.pack(side="top", fill="both", expand=True)
 root.wm_geometry("800x800")
 root.mainloop()

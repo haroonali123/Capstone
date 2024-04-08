@@ -1,4 +1,11 @@
 #Create a new Profile
+#TODO
+#CREATING MORE THEN 5 EXPS BUGS OUT, MAKE IT LIST HORIZONTALLY done
+#Delete Profile NEED TO FIX PROFILE ORDER WHEN DELETING. ALSO MAKE SURE THE BUTTONS REFRESH WITH NEW PROFILES ON RUNPROFILE AND HOME
+#Add settling time and acceptable bounds for temp, hum
+#Add devices page for com port selection
+#The number of sensors/devices plugged in needs to be variable
+#Allow 0 time to be used
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt
@@ -131,6 +138,10 @@ class Page2(Page):
 
     def getEntryValues(self):        
         
+        f = open("profiles.csv", 'r')
+        if (len(f.readlines()) == 10):
+            return
+        
         if(not self.flowRate1.get() and not self.flowRate2.get() and not self.flowRate3.get() and not self.flowRate4.get()):
             self.error_label2.pack_forget()
             self.error_label3.pack_forget()
@@ -201,7 +212,7 @@ class Page2(Page):
     def openNewWindow(self):
      
         newWindow = tk.Toplevel(self)
-        newWindow.title("New Window")
+        newWindow.title("Add Intervals")
     
         # sets the geometry of toplevel
         newWindow.geometry("600x600")
