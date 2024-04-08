@@ -1,11 +1,10 @@
 #Create a new Profile
 #TODO
-#CREATING MORE THEN 5 EXPS BUGS OUT, MAKE IT LIST HORIZONTALLY done
 #Delete Profile NEED TO FIX PROFILE ORDER WHEN DELETING. ALSO MAKE SURE THE BUTTONS REFRESH WITH NEW PROFILES ON RUNPROFILE AND HOME
-#Add settling time and acceptable bounds for temp, hum
 #Add devices page for com port selection
 #The number of sensors/devices plugged in needs to be variable
-#Allow 0 time to be used
+#Allow 0 time to be used DONE
+#Actually poll MFC, still using random numbers
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt
@@ -142,23 +141,11 @@ class Page2(Page):
         if (len(f.readlines()) == 10):
             return
         
-        if(not self.flowRate1.get() and not self.flowRate2.get() and not self.flowRate3.get() and not self.flowRate4.get()):
-            self.error_label2.pack_forget()
-            self.error_label3.pack_forget()
-            self.errorFrame1.pack(side="top")
-            self.error_label1.pack(side="top", expand=False)
-        
-        elif(not self.initialTemp.get() or not self.initialHum.get() or not self.finalTemp.get() or not self.finalHum.get()):
+        if(not self.initialTemp.get() or not self.initialHum.get() or not self.finalTemp.get() or not self.finalHum.get()):
             self.error_label1.pack_forget()
             self.error_label3.pack_forget()
             self.errorFrame1.pack(side="top")
             self.error_label2.pack(side="top", expand=False)
-        
-        elif(not self.hours.get() and not self.minutes.get()):
-            self.error_label1.pack_forget()
-            self.error_label2.pack_forget()
-            self.errorFrame1.pack(side="top")
-            self.error_label3.pack(side="top", expand=False)
 
         else:
             self.error_label1.pack_forget()
