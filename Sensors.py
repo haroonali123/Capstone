@@ -17,7 +17,7 @@ class Sensors:
                 print(self.port.readline().decode())
         else:
             with open(self.file_name, 'a') as file:
-                file.write("Current Time = {}\n".format(datetime.now()))      
+                file.write("Current Time = {}, ".format(datetime.now()))      
                 for line in range(num_lines):
                     file.write(self.port.readline().decode())
         pass
