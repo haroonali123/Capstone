@@ -14,13 +14,15 @@ class Sensors:
     def write_or_print(self, num_lines):
         if self.file_path == None:
             for line in range(num_lines):
+                string = self.port.readline().decode()
                 print(self.port.readline().decode())
         else:
             with open(self.file_name, 'a') as file:
                 file.write("Current Time = {}, ".format(datetime.now()))      
                 for line in range(num_lines):
                     file.write(self.port.readline().decode())
-        pass
+        
+        return string
 
     # this function allows for sensor to be "zeroed" after being unpowered for an extended duration 
     def reCalibrate(self):
@@ -32,7 +34,8 @@ class Sensors:
     def singleMeasurement(self):
         command = "\r"
         self.port.write(command.encode())
-        self.write_or_print(1)
+        string = self.write_or_print(1)
+        return string
             
     # this function continuously outputs data to the terminal. press "c" to exit
     def continuousData(self):
