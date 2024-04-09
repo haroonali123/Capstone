@@ -40,8 +40,8 @@ class Page3(Page):
         resetQueueButton = tk.Button(self.resetQueueFrame, command=self.resetQueue, text = 'Reset Queue')
         resetQueueButton.pack(side='left')
 
-        #devicePortsButton = tk.Button(self.resetQueueFrame, command=self.openNewWindow, text = 'Device Ports')
-        #devicePortsButton.pack(side='left')
+        devicePortsButton = tk.Button(self.resetQueueFrame, command=self.openNewWindow, text = 'Device Ports')
+        devicePortsButton.pack(side='left')
 
         
         self.flowRate1_frame = tk.Frame(self.monitorFrame)
@@ -97,6 +97,12 @@ class Page3(Page):
         
         isRunningLabel = tk.Label(self.isRunningFrame, text = 'Status: ', font=('calibre',10, 'bold')).pack(side='left')
         isRunningStatusLabel = tk.Label(self.isRunningFrame, text = 'IDLE', font=('calibre',10, 'bold'), fg='green').pack(side='left')
+
+        try:
+            usb_devices, num_devices = port_scanner.scan_usb_ports()
+            MFC_PORT, THERMOTRON_PORT,data = port_scanner.getDevicePorts(usb_devices)
+        except:
+            print("USB Devices not found")
 
         self.t1 = threading.Thread(target=self.run, daemon=True)
         self.t1.start()
@@ -249,12 +255,64 @@ class Page3(Page):
         # sets the geometry of toplevel
         newWindow.geometry("600x600")
 
-        usb_devices, num_devices = port_scanner.scan_usb_ports()
-        MFC_PORT, THERMOTRON_PORT = port_scanner.getDevicePorts(usb_devices)
+        try:
+            usb_devices, num_devices = port_scanner.scan_usb_ports()
+            MFC_PORT, THERMOTRON_PORT = port_scanner.getDevicePorts(usb_devices)
+        except:
+            print("USB Devices not found")
+
+        
+
+        self.mfcPortVar=tk.StringVar()
+        self.thermotronPortVar=tk.StringVar()
+
+        entryFrame1 = tk.Frame(newWindow)
+        entryFrame1.pack(side="top", fill="x", expand=False)
+        MFC_label = tk.Label(entryFrame1, text = 'Brooks MFC COM Port #: ', font=('calibre',10, 'bold'))
+        self.MFC_entry = tk.Entry(entryFrame1,textvariable = self.mfcPortVar, font=('calibre',10,'normal'))
+        MFC_label.pack(side="left", expand=False)
+        self.MFC_entry.pack(side="left", fill="x", expand=True)
+
+        entryFrame2 = tk.Frame(newWindow)
+        entryFrame2.pack(side="top", fill="x", expand=False)
+        thermotron_label = tk.Label(entryFrame2, text = 'Thermotron COM Port #: ', font=('calibre',10, 'bold'))
+        self.thermotron_entry = tk.Entry(entryFrame2,textvariable = self.thermotronPortVar, font=('calibre',10,'normal'))
+        thermotron_label.pack(side="left", expand=False)
+        self.thermotron_entry.pack(side="left", fill="x", expand=True)
+
+        self.sensorPortVars = []
+        addSensorButton = tk.Button(newWindow, command=lambda:self.addSensorPort(newWindow), text = 'Add Sensor')
+        addSensorButton.pack(side='bottom')
+
+        doneButton = tk.Button(newWindow, command=lambda:[self.getPortEntry(), newWindow.destroy()], text = 'Done')
+        doneButton.pack(side='bottom')
+    
+    def getPortEntry(self):
 
         with open('devices.json', 'r') as json_file:
             data = json.load(json_file)
         
+        self.MFC_PORT = 'COM' + str(self.mfcPortVar.get())
+        self.THERMOTRON_PORT = 'COM' + str(self.thermotronPortVar.get())
+        self.sensorPorts = []
+        
+        for sensorPort in self.sensorPortVars:
+            self.sensorPorts.append('COM' + str(sensorPort.get()))
+
+
+    def addSensorPort(self, newWindow):
+        
+        sensorPortVar=tk.StringVar()
+        self.sensorPortVars.append(sensorPortVar)
+        sensorNum = len(self.sensorPortVars)
+
+        entryFrame1 = tk.Frame(newWindow)
+        entryFrame1.pack(side="top", fill="x", expand=False)
+        flowRate1_label = tk.Label(entryFrame1, text = 'Sensor' + str(sensorNum) +  ' COM Port #: ', font=('calibre',10, 'bold'))
+        self.flowRate1_entry = tk.Entry(entryFrame1,textvariable = sensorPortVar, font=('calibre',10,'normal'))
+        flowRate1_label.pack(side="left", expand=False)
+        self.flowRate1_entry.pack(side="left", fill="x", expand=True)
+
 
     def run(self):
 
@@ -270,21 +328,22 @@ class Page3(Page):
 
                 self.resetQueueRun()
 
-                usb_devices, num_devices = port_scanner.scan_usb_ports()
-                port_scanner.print_usb_devices(usb_devices)
-                MFC_PORT, THERMOTRON_PORT, data = port_scanner.getDevicePorts(usb_devices)
-                print(MFC_PORT, THERMOTRON_PORT)
+                #usb_devices, num_devices = port_scanner.scan_usb_ports()
+                #port_scanner.print_usb_devices(usb_devices)
+                #MFC_PORT, THERMOTRON_PORT, data = port_scanner.getDevicePorts(usb_devices)
+                print(self.MFC_PORT, self.THERMOTRON_PORT)
 
                 #Send Commands to Devices
-                thermotron = Thermotron.Thermotron(THERMOTRON_PORT)   #Initialize Thermotron object
-                MFC1 = MFC.MFC_device(MFC_PORT)
-                print(THERMOTRON_PORT)
+                thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)   #Initialize Thermotron object
+                #thermotron.port.close()
+                
+                MFC1 = MFC.MFC_device(self.MFC_PORT)
+                #MFC1.port.close()
+
                 sensors = []
 
-                '''for device in data:
-                    if "Sensor" in device:
-                        sensor = Sensors.Sensors(data[device])
-                        sensors.append(sensor)'''
+                for sensorPort in self.sensorPorts:
+                    sensors.append(Sensors.Sensors(sensorPort))
 
                 stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp(), thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
                 stopButton.pack(side='left')
@@ -300,7 +359,9 @@ class Page3(Page):
                 for profile in self.runQueue:
                     #MFC1_port = 'COM4'
                     
-                    
+                    #MFC1.port.open()
+                    #thermotron.port.open()
+
                     MFC1.setFlowRate('02',profile[1])
                     program_number = int(profile[0][-1])
                     MFC1.setFlowRate('04',profile[2])
@@ -313,13 +374,26 @@ class Page3(Page):
                     first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
                     headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
 
+                    for i in range(len(sensors)):
+                        headers.append("Sensor" + str(i) + ": Col1")
+                        headers.append("Sensor" + str(i) + ": Col2")
+                        headers.append("Sensor" + str(i) + ": Col3")
+                        headers.append("Sensor" + str(i) + ": Col4")
+                        headers.append("Sensor" + str(i) + ": Col5")
+                        headers.append("Sensor" + str(i) + ": Col6")
+                        headers.append("Sensor" + str(i) + ": Col7")
+                        headers.append("Sensor" + str(i) + ": Col8")
+                        headers.append("Sensor" + str(i) + ": Col9")
+                        headers.append("Sensor" + str(i) + ": Col10")
+                        headers.append("Sensor" + str(i) + ": Col11")
+
                     file = open(file_path, mode='a', newline='')
 
                     writer = csv.writer(file)
 
                     writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
-                    writer.writerow(headers)     #Write the headers for the data
                     writer.writerow("")
+                    writer.writerow(headers)     #Write the headers for the data
                     
                     print("-"*72)                                                        
                     print("Starting Program number: " + str(program.number) + '\n')
@@ -340,7 +414,7 @@ class Page3(Page):
                     
                     start_time = datetime.datetime.now()
 
-                    setpoint_ok_max = 1500
+                    setpoint_ok_max = 50
 
                     while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                         
@@ -380,27 +454,30 @@ class Page3(Page):
                     while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                         
                         if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
-                            
-                            self.flowRate1 = random.randint(1,100)
-                            self.flowRate2 = random.randint(1,100)
-                            self.flowRate3 = random.randint(1,100)
-                            self.flowRate4 = random.randint(1,100)
-                            
-                            #for sensor in sensors:
-                                #sensor.singleMeasurement()
+
+                            self.flowRate1 = MFC1.getFlowRate('02')
+                            self.flowRate2 = MFC1.getFlowRate('04')
+                            self.flowRate3 = MFC1.getFlowRate('06')
+                            self.flowRate4 = MFC1.getFlowRate('08')
 
                             thermotron.poll_experiment()
+                            sensorData = ""
+                            dataToCSV = [thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity]
+                            
+                            for sensor in sensors:
+                                data = sensor.singleMeasurement().split(",")
+                                for col in data:
+                                    dataToCSV.append(col)
 
+                            
                             print("Current Interval: " + str(thermotron.interval))
                             print("Current Temperature: " + str(thermotron.temp))
                             print("Current Humidity: " + str(thermotron.humidity))
-                            print("Time left in interval: " + str(thermotron.intervaltimeleft) + '\n')
 
                             time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
-                            print(str(time_in_interval) + "out of " + str(thermotron.intervaltimetotal) + " minutes\n")
-                            
-                            writer.writerow([thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity])
+                            print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
 
+                            writer.writerow(dataToCSV)
 
                             self.temp = thermotron.temp
                             self.humidity = thermotron.humidity
@@ -421,7 +498,9 @@ class Page3(Page):
                     thermotron.stop() #Stop thermotron once program is done
                     print("Program Done")
                 
-                
+                thermotron.port.close()
+                MFC1.port.close()
+
                 self.resetQueue()
                 self.clear_utilityFrame()
                 self.showProfile()
