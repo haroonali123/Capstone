@@ -13,6 +13,10 @@
 #Add another state for manual mode (intial temp/hum)
 #Implement a load defaults into the device ports page.
 #When pressing done, save the settings to the devices.json
+#With 10 profiles, the enqueue is queuing the same profile and cannot differentiate.
+#The 10 profiles were added manually
+#Sometimes happens randomly
+#Ask for email before running
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt

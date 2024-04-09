@@ -3,6 +3,14 @@
 import serial
 import time
 
+from email.message import EmailMessage
+import ssl
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
 #################################################################################################################################################
 # Thermotron class Definition
 #################################################################################################################################################
@@ -272,3 +280,61 @@ class Thermotron:
             print(minutes)
 
             print("-"*72)
+
+#################################################################################################################################################
+# Send email function
+#################################################################################################################################################
+
+
+    def email_msg(self, program_number, start_time, error = False):
+
+        if error == True:
+            subject = "Program # " + str(program_number) + " had an error"
+            message = "Program # "+ str(program_number) + " which started on " + start_time + " had an error"
+
+        else:
+            subject = "Program # " + str(program_number) + " completed without error"
+            message = "Program # "+ str(program_number) + " which started on " + start_time + " has completed without error"
+        
+        return([subject, message])
+
+
+    def send_email(self, receiver, subject, message, file_path = "", file_name = "file"):
+        
+        try:
+            email_sender = 'thermotronabb108@gmail.com'
+            email_password = 'cjum zibl qwyd oecn'
+
+            email_receiver = receiver
+
+            subject = "Thermotron update: " + subject
+            body = message
+
+            message = MIMEMultipart()
+            message['From'] = email_sender
+            message['To'] = email_receiver
+            message['subject'] = subject
+
+            message.attach(MIMEText(body, "plain"))
+
+
+
+            if file_path != "":
+
+                attachment = open(file_path, "rb")
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                message.attach(part)
+                part.add_header("Content-Disposition", f"attachment; filename= {file_name}",)
+                attachment.close()
+            
+            with smtplib.SMTP("smtp.gmail.com", 587) as server:
+                server.starttls()
+                server.login(email_sender, email_password)
+                text = message.as_string()
+                server.sendmail(email_sender, receiver, text)
+
+        except:
+            pass
+     

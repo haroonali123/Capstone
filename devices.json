@@ -1,5 +1,1 @@
-{
-    "MFC" : "COM1",
-    "Thermotron" : "COM2",
-    "Sensor1" : "COM3"
-}
+{"MFC": "COM4", "Thermotron": "COM3", "Sensor1": "COM3"}

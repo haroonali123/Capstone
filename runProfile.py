@@ -341,7 +341,6 @@ class Page3(Page):
                 #MFC1.port.close()
 
                 sensors = []
-
                 for sensorPort in self.sensorPorts:
                     sensors.append(Sensors.Sensors(sensorPort))
 
@@ -355,151 +354,170 @@ class Page3(Page):
                 continueButton.pack(side='left')
 
                 self.monitorFrame.pack()
-                    
-                for profile in self.runQueue:
-                    #MFC1_port = 'COM4'
-                    
-                    #MFC1.port.open()
-                    #thermotron.port.open()
-
-                    MFC1.setFlowRate('02',profile[1])
-                    program_number = int(profile[0][-1])
-                    MFC1.setFlowRate('04',profile[2])
-
-                    program = Experiment.Experiment(program_number)                      #Create experiment object
-                    
-                    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
-                    file_path = "./Thermotron_data/Thermotron_data_" + current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
-
-                    first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
-                    headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
-
-                    for i in range(len(sensors)):
-                        headers.append("Sensor" + str(i) + ": Col1")
-                        headers.append("Sensor" + str(i) + ": Col2")
-                        headers.append("Sensor" + str(i) + ": Col3")
-                        headers.append("Sensor" + str(i) + ": Col4")
-                        headers.append("Sensor" + str(i) + ": Col5")
-                        headers.append("Sensor" + str(i) + ": Col6")
-                        headers.append("Sensor" + str(i) + ": Col7")
-                        headers.append("Sensor" + str(i) + ": Col8")
-                        headers.append("Sensor" + str(i) + ": Col9")
-                        headers.append("Sensor" + str(i) + ": Col10")
-                        headers.append("Sensor" + str(i) + ": Col11")
-
-                    file = open(file_path, mode='a', newline='')
-
-                    writer = csv.writer(file)
-
-                    writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
-                    writer.writerow("")
-                    writer.writerow(headers)     #Write the headers for the data
-                    
-                    print("-"*72)                                                        
-                    print("Starting Program number: " + str(program.number) + '\n')
-
-                    thermotron.stop()                                                    #Place in stop initially
-                    
-                    thermotron.write_program(program.command)                            #Write program to Thermotron
-
-                    initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
-                    initial_humidity = program.intervals[0]["humidity"]
-
-                    print("Manually running until initial temperature: " + str(initial_temp) + '\n')
-                    print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
-
-                    thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
-
-                    setpoint_ok_count = 0
-                    
-                    start_time = datetime.datetime.now()
-
-                    setpoint_ok_max = 50
-
-                    while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
+                try:
+    
+                    for profile in self.runQueue:
+                        #MFC1_port = 'COM4'
                         
-                        if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
+                        #MFC1.port.open()
+                        #thermotron.port.open()
 
-                            thermotron.getStatus()
-                            thermotron.getTempandHumidity()
-                            print("Temperature is: " + str(thermotron.temp))
-                            #print("Humidity is: " + str(thermotron.humidity))
+                        MFC1.setFlowRate('02',profile[1])
+                        program_number = int(profile[0][-1])
+                        MFC1.setFlowRate('04',profile[2])
 
-                            if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
+                        program = Experiment.Experiment(program_number)                      #Create experiment object
+                        
+                        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
+                        file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
+                        file_path = "./Thermotron_data/Thermotron_data_" + file_name
+
+                        first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
+                        headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
+                        for i in range(len(sensors)):
+                            headers.append("Sensor" + str(i) + ": Col1")
+                            headers.append("Sensor" + str(i) + ": Col2")
+                            headers.append("Sensor" + str(i) + ": Col3")
+                            headers.append("Sensor" + str(i) + ": Col4")
+                            headers.append("Sensor" + str(i) + ": Col5")
+                            headers.append("Sensor" + str(i) + ": Col6")
+                            headers.append("Sensor" + str(i) + ": Col7")
+                            headers.append("Sensor" + str(i) + ": Col8")
+                            headers.append("Sensor" + str(i) + ": Col9")
+                            headers.append("Sensor" + str(i) + ": Col10")
+                            headers.append("Sensor" + str(i) + ": Col11")
+
+                        file = open(file_path, mode='a', newline='')
+
+                        writer = csv.writer(file)
+
+                        writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
+                        writer.writerow("")
+                        writer.writerow(headers)     #Write the headers for the data
+                        
+                        print("-"*72)                                                        
+                        print("Starting Program number: " + str(program.number) + '\n')
+
+                        thermotron.stop()                                                    #Place in stop initially
+                        
+                        thermotron.write_program(program.command)                            #Write program to Thermotron
+
+                        initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
+                        initial_humidity = program.intervals[0]["humidity"]
+
+                        print("Manually running until initial temperature: " + str(initial_temp) + '\n')
+                        print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
+
+                        thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
+
+                        setpoint_ok_count = 0
+                        
+                        start_time = datetime.datetime.now()
+
+                        setpoint_ok_max = 50
+                        time.sleep(3)
+                        self.flowRate1 = MFC1.getFlowRate('02')
+                        self.flowRate2 = MFC1.getFlowRate('04')
+                        self.flowRate3 = MFC1.getFlowRate('06')
+                        self.flowRate4 = MFC1.getFlowRate('08')
+
+                        while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
+                            
+                            if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
+
+                                thermotron.getStatus()
+                                thermotron.getTempandHumidity()
+                                print("Temperature is: " + str(thermotron.temp))
+                                #print("Humidity is: " + str(thermotron.humidity))
+
+                                if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
+                                    
+                                    setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
                                 
-                                setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
+                                else:
+                                    
+                                    print("Setpoint ok, tick " + str(setpoint_ok_count) + "/" + str(setpoint_ok_max) + '\n')
+                                    setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
+                        
+                        if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
+
+                            thermotron.GUI_stop_request == False
+                            print("Program stopped by GUI\n")
+                            self.stopExp()
+                            break
+
+                        
+                        end_time = datetime.datetime.now()
+
+                        print("Manual run took: " + str(end_time - start_time) + '\n')
+                        print("-"*72)
+                        print("Starting program number " + str(program.number))
+                        
+                        thermotron.stop_run_program(program.number)      #Stop, then run selected program
+                        thermotron.getStatus()
+
+                        count = 0
+                        while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                             
-                            else:
+                            if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
                                 
-                                print("Setpoint ok, tick " + str(setpoint_ok_count) + "/" + str(setpoint_ok_max) + '\n')
-                                setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
-                    
-                    if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
+                                #if (count == 10):
+                                self.flowRate1 = MFC1.getFlowRate('02')
+                                self.flowRate2 = MFC1.getFlowRate('04')
+                                self.flowRate3 = MFC1.getFlowRate('06')
+                                self.flowRate4 = MFC1.getFlowRate('08')
+                                    #count = 1
+                                #else:
+                                    #count += 1
 
-                        thermotron.GUI_stop_request == False
-                        print("Program stopped by GUI\n")
-                        self.stopExp()
-                        break
+                                thermotron.poll_experiment()
+                                sensorData = ""
 
-                    
-                    end_time = datetime.datetime.now()
+                                time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
 
-                    print("Manual run took: " + str(end_time - start_time) + '\n')
-                    print("-"*72)
-                    print("Starting program number " + str(program.number))
-                    
-                    thermotron.stop_run_program(program.number)      #Stop, then run selected program
-                    thermotron.getStatus()
+                                dataToCSV = [thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity]
+                                
+                                for sensor in sensors:
+                                    data = (sensor.singleMeasurement().strip("\r\n")).split(",")
+                                    
+                                    for col in data:
+                                        dataToCSV.append(col)
 
-                    while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
-                        
-                        if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
+                                
+                                print("Current Interval: " + str(thermotron.interval))
+                                print("Current Temperature: " + str(thermotron.temp))
+                                print("Current Humidity: " + str(thermotron.humidity))
 
-                            self.flowRate1 = MFC1.getFlowRate('02')
-                            self.flowRate2 = MFC1.getFlowRate('04')
-                            self.flowRate3 = MFC1.getFlowRate('06')
-                            self.flowRate4 = MFC1.getFlowRate('08')
+                                print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
 
-                            thermotron.poll_experiment()
-                            sensorData = ""
-                            dataToCSV = [thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity]
+                                writer.writerow(dataToCSV)
+
+                                self.temp = thermotron.temp
+                                self.humidity = thermotron.humidity
+                                self.interval = thermotron.interval
+                                self.time = thermotron.intervaltimeleft
                             
-                            for sensor in sensors:
-                                data = sensor.singleMeasurement().split(",")
-                                for col in data:
-                                    dataToCSV.append(col)
+                            #time.sleep(0.5)
 
-                            
-                            print("Current Interval: " + str(thermotron.interval))
-                            print("Current Temperature: " + str(thermotron.temp))
-                            print("Current Humidity: " + str(thermotron.humidity))
+                        if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
 
-                            time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
-                            print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
+                            thermotron.GUI_stop_request == False
 
-                            writer.writerow(dataToCSV)
+                            print("Program stopped by GUI\n")
+                            self.stopExp()
+                            break
 
-                            self.temp = thermotron.temp
-                            self.humidity = thermotron.humidity
-                            self.interval = thermotron.interval
-                            self.time = thermotron.intervaltimeleft
-                        
-                        time.sleep(1)
-
-                    if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
-
-                        thermotron.GUI_stop_request == False
-
-                        print("Program stopped by GUI\n")
-                        self.stopExp()
-                        break
-
-                    file.close()
-                    thermotron.stop() #Stop thermotron once program is done
-                    print("Program Done")
+                        file.close()
+                        thermotron.stop() #Stop thermotron once program is done
+                        [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime )
+                        thermotron.send_email(receiver= "matthewdjohnson2929@gmail.com",subject= subject, message = message, file_path=file_path, file_name= file_name)
+                        print("Program Done")
                 
-                thermotron.port.close()
-                MFC1.port.close()
+                except:
+                    file.close()
+                    [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, error = True )
+                    thermotron.send_email(receiver= "matthewdjohnson2929@gmail.com",subject= subject, message = message)
+
 
                 self.resetQueue()
                 self.clear_utilityFrame()
@@ -598,9 +616,10 @@ class Page3(Page):
         finalHum_label.pack()
         hours_label.pack()
         minutes_label.pack()
-
-        addToQueueButton = tk.Button(self.plotFrame, command=lambda:self.addToQueue(data), text = 'Add to Queue')
-        addToQueueButton.pack(side='top')
+        #fix
+        if(len(self.resetQueueFrame.winfo_children()) <= 2):
+            addToQueueButton = tk.Button(self.resetQueueFrame, command=lambda:self.addToQueue(data), text = 'Add to Queue')
+            addToQueueButton.pack(side='top')
 
 
         

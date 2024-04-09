@@ -1,4 +1,5 @@
 import serial
+import time
 
 class MFC_device:
     
@@ -14,8 +15,8 @@ class MFC_device:
     def getFlowRate(self, port):
         cmd = 'AZ.' + port + 'P01?\r' 
         self.port.write(cmd.encode())
-        response = self.port.readline()
-        print(response)
+        time.sleep(0.5)
+        response = (self.port.readline().decode()).split(",")[4]
         return response
 
 
