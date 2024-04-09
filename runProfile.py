@@ -357,10 +357,13 @@ class Page3(Page):
                 try:
     
                     for profile in self.runQueue:
+                        
                         #MFC1_port = 'COM4'
                         
                         #MFC1.port.open()
                         #thermotron.port.open()
+
+                        receive_address = "matthewdjohnson2929@gmail.com"
 
                         MFC1.setFlowRate('02',profile[1])
                         program_number = int(profile[0][-1])
@@ -371,6 +374,11 @@ class Page3(Page):
                         current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
                         file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
                         file_path = "./Thermotron_data/Thermotron_data_" + file_name
+
+                        self.flowRate1 = MFC1.getFlowRate('02')
+                        self.flowRate2 = MFC1.getFlowRate('04')
+                        self.flowRate3 = MFC1.getFlowRate('06')
+                        self.flowRate4 = MFC1.getFlowRate('08')
 
                         first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
                         headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
@@ -415,11 +423,8 @@ class Page3(Page):
                         start_time = datetime.datetime.now()
 
                         setpoint_ok_max = 50
-                        time.sleep(3)
-                        self.flowRate1 = MFC1.getFlowRate('02')
-                        self.flowRate2 = MFC1.getFlowRate('04')
-                        self.flowRate3 = MFC1.getFlowRate('06')
-                        self.flowRate4 = MFC1.getFlowRate('08')
+
+                        
 
                         while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                             
@@ -443,7 +448,14 @@ class Page3(Page):
 
                             thermotron.GUI_stop_request == False
                             print("Program stopped by GUI\n")
+
+                            [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "GUI" )
+                            thermotron.send_email(receiver= receive_address,subject= subject, message = message, file_path=file_path, file_name= file_name)
+
+                            file.close()
+                            thermotron.stop() 
                             self.stopExp()
+
                             break
 
                         
@@ -461,14 +473,11 @@ class Page3(Page):
                             
                             if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
                                 
-                                #if (count == 10):
                                 self.flowRate1 = MFC1.getFlowRate('02')
                                 self.flowRate2 = MFC1.getFlowRate('04')
                                 self.flowRate3 = MFC1.getFlowRate('06')
                                 self.flowRate4 = MFC1.getFlowRate('08')
-                                    #count = 1
-                                #else:
-                                    #count += 1
+
 
                                 thermotron.poll_experiment()
                                 sensorData = ""
@@ -497,26 +506,41 @@ class Page3(Page):
                                 self.interval = thermotron.interval
                                 self.time = thermotron.intervaltimeleft
                             
-                            #time.sleep(0.5)
-
                         if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
 
                             thermotron.GUI_stop_request == False
 
                             print("Program stopped by GUI\n")
+
+                            [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "GUI" )
+                            thermotron.send_email(receiver= receive_address ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            
+                            file.close()
+                            thermotron.stop() 
                             self.stopExp()
+                            
                             break
 
+                        if thermotron.interval == program.interval_count +1:
+
+                            [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime )
+                            thermotron.send_email(receiver= receive_address ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program Done")
+                        
+                        else:
+
+                            [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop = "stop")
+                            thermotron.send_email(receiver= receive_address ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program Done")
+
                         file.close()
-                        thermotron.stop() #Stop thermotron once program is done
-                        [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime )
-                        thermotron.send_email(receiver= "matthewdjohnson2929@gmail.com",subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program Done")
+                        thermotron.stop() 
+
                 
                 except:
                     file.close()
                     [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, error = True )
-                    thermotron.send_email(receiver= "matthewdjohnson2929@gmail.com",subject= subject, message = message)
+                    thermotron.send_email(receiver= receive_address ,subject= subject, message = message)
 
 
                 self.resetQueue()

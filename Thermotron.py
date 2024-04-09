@@ -286,11 +286,21 @@ class Thermotron:
 #################################################################################################################################################
 
 
-    def email_msg(self, program_number, start_time, error = False):
+    def email_msg(self, program_number, start_time, error = False, early_stop = ""):
 
         if error == True:
             subject = "Program # " + str(program_number) + " had an error"
             message = "Program # "+ str(program_number) + " which started on " + start_time + " had an error"
+
+        elif  early_stop == "GUI":
+            
+            subject = "Program # " + str(program_number) + " was stopped from the PC"
+            message = "Program # "+ str(program_number) + " which started on " + start_time + " was stopped from the PC"
+
+        elif early_stop == "STOP":
+            
+            subject = "Program # " + str(program_number) + " was stopped from the thermotron"
+            message = "Program # "+ str(program_number) + " which started on " + start_time + " was stopped from the thermotron"
 
         else:
             subject = "Program # " + str(program_number) + " completed without error"
