@@ -75,9 +75,9 @@ class Experiment:
 
             else:                                                                        #All remaining interval commands
 
-                if self.intervals[i]["hour"] == 0 and self.intervals[i]["minute"] == 0:                          #Guaranteed soak intervals (defined in manual), adds deviation parameter of 1 deg C for temp and 3% for humidity
+                if self.intervals[i]["hour"] == 0 and self.intervals[i]["minute"] == 0:                          #Guaranteed soak intervals (defined in manual), adds deviation parameter of 1 deg C for temp and 1% for humidity
 
-                    self.command.append("LPI" + str(i) + "," + str(self.intervals[i]["temp"]) + "," + str(self.intervals[i]["humidity"]) + ",," + str(int(self.intervals[i]["hour"])) + "," + str(int(self.intervals[i]["minute"])) + ",,,,,,1,3")
+                    self.command.append("LPI" + str(i) + "," + str(self.intervals[i]["temp"]) + "," + str(self.intervals[i]["humidity"]) + ",," + str(int(self.intervals[i]["hour"])) + "," + str(int(self.intervals[i]["minute"])) + ",,,,,,1,1")
 
                 else:                                                                                            #Normal ramp based intervals (no deviation parameter)
                     self.command.append("LPI" + str(i) + "," + str(self.intervals[i]["temp"]) + "," + str(self.intervals[i]["humidity"]) + ",," + str(int(self.intervals[i]["hour"])) + "," + str(int(self.intervals[i]["minute"])))

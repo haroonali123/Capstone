@@ -354,14 +354,10 @@ class Page3(Page):
                 continueButton.pack(side='left')
 
                 self.monitorFrame.pack()
+
                 try:
     
                     for profile in self.runQueue:
-                        
-                        #MFC1_port = 'COM4'
-                        
-                        #MFC1.port.open()
-                        #thermotron.port.open()
 
                         receive_address = "matthewdjohnson2929@gmail.com"
 
@@ -371,17 +367,16 @@ class Page3(Page):
 
                         program = Experiment.Experiment(program_number)                      #Create experiment object
                         
-                        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
-                        file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
-                        file_path = "./Thermotron_data/Thermotron_data_" + file_name
-
                         self.flowRate1 = MFC1.getFlowRate('02')
                         self.flowRate2 = MFC1.getFlowRate('04')
                         self.flowRate3 = MFC1.getFlowRate('06')
                         self.flowRate4 = MFC1.getFlowRate('08')
 
+
+
                         first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
                         headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
+
                         for i in range(len(sensors)):
                             headers.append("Sensor" + str(i) + ": Col1")
                             headers.append("Sensor" + str(i) + ": Col2")
@@ -395,36 +390,35 @@ class Page3(Page):
                             headers.append("Sensor" + str(i) + ": Col10")
                             headers.append("Sensor" + str(i) + ": Col11")
 
+
+                        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
+
+                        file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
+                        file_path = "./Thermotron_data/Thermotron_data_" + file_name
+
                         file = open(file_path, mode='a', newline='')
-
                         writer = csv.writer(file)
-
                         writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
                         writer.writerow("")
                         writer.writerow(headers)     #Write the headers for the data
                         
-                        print("-"*72)                                                        
-                        print("Starting Program number: " + str(program.number) + '\n')
-
-                        thermotron.stop()                                                    #Place in stop initially
-                        
-                        thermotron.write_program(program.command)                            #Write program to Thermotron
 
                         initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
                         initial_humidity = program.intervals[0]["humidity"]
 
+                        thermotron.stop()                                                    #Place in stop initially
+                        thermotron.write_program(program.command)                            #Write program to Thermotron
+                        thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
+
+                        print("-"*72)                                                        
+                        print("Starting Program number: " + str(program.number) + '\n')                    
                         print("Manually running until initial temperature: " + str(initial_temp) + '\n')
                         print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
 
-                        thermotron.run_manual(initial_temp, initial_humidity)   #Start running in manual with initial SP's defined in program
 
                         setpoint_ok_count = 0
-                        
                         start_time = datetime.datetime.now()
-
-                        setpoint_ok_max = 50
-
-                        
+                        setpoint_ok_max = 1500                        
 
                         while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                             
@@ -432,10 +426,11 @@ class Page3(Page):
 
                                 thermotron.getStatus()
                                 thermotron.getTempandHumidity()
+
                                 print("Temperature is: " + str(thermotron.temp))
                                 #print("Humidity is: " + str(thermotron.humidity))
 
-                                if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or thermotron.humidity != initial_humidity:  
+                                if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or (thermotron.humidity < initial_humidity - 1 or thermotron.humidity > initial_humidity + 1):  
                                     
                                     setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
                                 
@@ -468,7 +463,7 @@ class Page3(Page):
                         thermotron.stop_run_program(program.number)      #Stop, then run selected program
                         thermotron.getStatus()
 
-                        count = 0
+
                         while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                             
                             if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
@@ -480,7 +475,6 @@ class Page3(Page):
 
 
                                 thermotron.poll_experiment()
-                                sensorData = ""
 
                                 time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
 
@@ -492,12 +486,6 @@ class Page3(Page):
                                     for col in data:
                                         dataToCSV.append(col)
 
-                                
-                                print("Current Interval: " + str(thermotron.interval))
-                                print("Current Temperature: " + str(thermotron.temp))
-                                print("Current Humidity: " + str(thermotron.humidity))
-
-                                print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
 
                                 writer.writerow(dataToCSV)
 
@@ -505,6 +493,12 @@ class Page3(Page):
                                 self.humidity = thermotron.humidity
                                 self.interval = thermotron.interval
                                 self.time = thermotron.intervaltimeleft
+
+                                print("Current Interval: " + str(thermotron.interval))
+                                print("Current Temperature: " + str(thermotron.temp))
+                                print("Current Humidity: " + str(thermotron.humidity))
+
+                                print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
                             
                         if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
 
