@@ -8,6 +8,11 @@
 #create profile submit button does not reapear
 #Implement some sort of testing sequence to ensure that the MFC, sensors, and thermo are connected
 #Most likelt will only have to do this for the thermotron, since the other devices will error on instantiation
+#Display program number in monitoring
+#The add to queue bytton dissapears after more than 6 profiles
+#Add another state for manual mode (intial temp/hum)
+#Implement a load defaults into the device ports page.
+#When pressing done, save the settings to the devices.json
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt
