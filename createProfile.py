@@ -1,22 +1,7 @@
 #Create a new Profile
 #TODO
-#Delete Profile NEED TO FIX PROFILE ORDER WHEN DELETING. ALSO MAKE SURE THE BUTTONS REFRESH WITH NEW PROFILES ON RUNPROFILE AND HOME
-#Add devices page for com port selection
-#The number of sensors/devices plugged in needs to be variable
-#Allow 0 time to be used DONE
-#Actually poll MFC, still using random numbers
-#create profile submit button does not reapear
 #Implement some sort of testing sequence to ensure that the MFC, sensors, and thermo are connected
 #Most likelt will only have to do this for the thermotron, since the other devices will error on instantiation
-#Display program number in monitoring
-#The add to queue bytton dissapears after more than 6 profiles
-#Add another state for manual mode (intial temp/hum)
-#Implement a load defaults into the device ports page.
-#When pressing done, save the settings to the devices.json
-#With 10 profiles, the enqueue is queuing the same profile and cannot differentiate.
-#The 10 profiles were added manually
-#Sometimes happens randomly
-#Ask for email before running
 import tkinter as tk
 from page import Page
 import matplotlib.pyplot as plt
@@ -50,34 +35,36 @@ class Page2(Page):
         self.yHum = []
         self.xAxis = []
 
+        vcmd = (self.register(self.callback))
+
         entryFrame1 = tk.Frame(self)
         entryFrame1.pack(side="top", fill="x", expand=False)
         flowRate1_label = tk.Label(entryFrame1, text = 'Flow Rate 1: ', font=('calibre',10, 'bold'))
-        self.flowRate1_entry = tk.Entry(entryFrame1,textvariable = self.flowRate1, font=('calibre',10,'normal'))
+        self.flowRate1_entry = tk.Entry(entryFrame1,textvariable = self.flowRate1, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         flowRate1_label.pack(side="left", expand=False)
         self.flowRate1_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame2 = tk.Frame(self)
         entryFrame2.pack(side="top", fill="x", expand=False)
         flowRate2_label = tk.Label(entryFrame2, text = 'Flow Rate 2: ', font=('calibre',10, 'bold'))
-        self.flowRate2_entry = tk.Entry(entryFrame2,textvariable = self.flowRate2, font=('calibre',10,'normal'))
+        self.flowRate2_entry = tk.Entry(entryFrame2,textvariable = self.flowRate2, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         flowRate2_label.pack(side="left", expand=False)
         self.flowRate2_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame21 = tk.Frame(self)
         entryFrame21.pack(side="top", fill="x", expand=False)
         flowRate3_label = tk.Label(entryFrame21, text = 'Flow Rate 3: ', font=('calibre',10, 'bold'))
-        self.flowRate3_entry = tk.Entry(entryFrame21,textvariable = self.flowRate3, font=('calibre',10,'normal'))
+        self.flowRate3_entry = tk.Entry(entryFrame21,textvariable = self.flowRate3, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         flowRate3_label.pack(side="left", expand=False)
         self.flowRate3_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame22 = tk.Frame(self)
         entryFrame22.pack(side="top", fill="x", expand=False)
         flowRate4_label = tk.Label(entryFrame22, text = 'Flow Rate 4: ', font=('calibre',10, 'bold'))
-        self.flowRate4_entry = tk.Entry(entryFrame22,textvariable = self.flowRate4, font=('calibre',10,'normal'))
+        self.flowRate4_entry = tk.Entry(entryFrame22,textvariable = self.flowRate4, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         flowRate4_label.pack(side="left", expand=False)
         self.flowRate4_entry.pack(side="left", fill="x", expand=True)
-
+        
         entryFrame3 = tk.Frame(self)
         entryFrame3.pack(side="top", fill="x", expand=False)
         initialTemp_label = tk.Label(entryFrame3, text = 'Initial Temperature: ', font=('calibre',10, 'bold'))
@@ -88,7 +75,7 @@ class Page2(Page):
         entryFrame4 = tk.Frame(self)
         entryFrame4.pack(side="top", fill="x", expand=False)
         initialHum_label = tk.Label(entryFrame4, text = 'Initial Humidity: ', font=('calibre',10, 'bold'))
-        self.initialHum_entry = tk.Entry(entryFrame4,textvariable = self.initialHum, font=('calibre',10,'normal'))
+        self.initialHum_entry = tk.Entry(entryFrame4,textvariable = self.initialHum, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         initialHum_label.pack(side="left", expand=False)
         self.initialHum_entry.pack(side="left", fill="x", expand=True)
 
@@ -102,21 +89,21 @@ class Page2(Page):
         entryFrame6 = tk.Frame(self)
         entryFrame6.pack(side="top", fill="x", expand=False)
         finalHum_label = tk.Label(entryFrame6, text = 'Final Humidity: ', font=('calibre',10, 'bold'))
-        self.finalHum_entry = tk.Entry(entryFrame6,textvariable = self.finalHum, font=('calibre',10,'normal'))
+        self.finalHum_entry = tk.Entry(entryFrame6,textvariable = self.finalHum, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         finalHum_label.pack(side="left", expand=False)
         self.finalHum_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame7 = tk.Frame(self)
         entryFrame7.pack(side="top", fill="x", expand=False)
         hours_label = tk.Label(entryFrame7, text = 'Time (Hours): ', font=('calibre',10, 'bold'))
-        self.hours_entry = tk.Entry(entryFrame7,textvariable = self.hours, font=('calibre',10,'normal'))
+        self.hours_entry = tk.Entry(entryFrame7,textvariable = self.hours, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         hours_label.pack(side="left", expand=False)
         self.hours_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame8 = tk.Frame(self)
         entryFrame8.pack(side="top", fill="x", expand=False)
         minutes_label = tk.Label(entryFrame8, text = 'Time (Minutes): ', font=('calibre',10, 'bold'))
-        self.minutes_entry = tk.Entry(entryFrame8,textvariable = self.minutes, font=('calibre',10,'normal'))
+        self.minutes_entry = tk.Entry(entryFrame8,textvariable = self.minutes, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         minutes_label.pack(side="left", expand=False)
         self.minutes_entry.pack(side="left", fill="x", expand=True)
         
@@ -130,6 +117,7 @@ class Page2(Page):
         self.error_label1 = tk.Label(self.errorFrame1, text = 'Please provide at least 1 Flow Rate', font=('calibre',10, 'bold'), fg='red')
         self.error_label2 = tk.Label(self.errorFrame1, text = 'Please provide all initial and final Temperature and Humidity values', font=('calibre',10, 'bold'), fg='red')
         self.error_label3 = tk.Label(self.errorFrame1, text = 'Please provide a time (Hours and/or Minutes)', font=('calibre',10, 'bold'), fg='red')
+        self.error_label4 = tk.Label(self.errorFrame1, text = 'Temperature/Humidity values out of range', font=('calibre',10, 'bold'), fg='red')
         #flowRate2=tk.StringVar()
 
     def clearEntryFields(self):
@@ -147,22 +135,51 @@ class Page2(Page):
     def clearIntervalEntryFields(self):
         pass
 
+    def callback(self, P):
+        if str.isdigit(P) or P == "":
+            return True
+        else:
+            return False
+
     def getEntryValues(self):        
         
         f = open("profiles.csv", 'r')
         if (len(f.readlines()) == 10):
             return
         
+        valid = False
+        try:
+            test = int(self.initialTemp.get()) + int(self.finalTemp.get())
+            valid = True
+        except ValueError:
+            valid = False
+
         if(not self.initialTemp.get() or not self.initialHum.get() or not self.finalTemp.get() or not self.finalHum.get()):
             self.error_label1.pack_forget()
             self.error_label3.pack_forget()
+            self.error_label4.pack_forget()
             self.errorFrame1.pack(side="top")
             self.error_label2.pack(side="top", expand=False)
+
+        elif not valid:
+            self.error_label1.pack_forget()
+            self.error_label3.pack_forget()
+            self.error_label4.pack_forget()
+            self.errorFrame1.pack(side="top")
+            self.error_label2.pack(side="top", expand=False)
+        
+        elif(int(self.initialTemp.get()) <= -18 or int(self.initialTemp.get()) >= 110 or int(self.initialHum.get()) <= 20 or int(self.initialHum.get()) >= 98 or int(self.finalTemp.get()) <= -18 or int(self.finalTemp.get()) >= 110 or int(self.finalHum.get()) <= 20 or int(self.finalHum.get()) >= 98):
+            self.error_label1.pack_forget()
+            self.error_label3.pack_forget()
+            self.error_label2.pack_forget()
+            self.errorFrame1.pack(side="top")
+            self.error_label4.pack(side="top", expand=False)
 
         else:
             self.error_label1.pack_forget()
             self.error_label2.pack_forget()
             self.error_label3.pack_forget()
+            self.error_label4.pack_forget()
 
             self.profile.append(self.flowRate1.get())
             self.profile.append(self.flowRate2.get())
@@ -183,20 +200,30 @@ class Page2(Page):
             else:
                 self.profile.append(self.minutes.get())
             
-            self.sub_btn.pack_forget()
             self.clearEntryFields()
             self.openNewWindow()
 
+    def find_lowest_not_in_list(self,lst):
+        numbers = set(range(1, 11))
+        lst_set = set(lst)
+        available_numbers = sorted(numbers - lst_set)
+        return available_numbers[0] if available_numbers else None
+    
     def saveToCSV(self):
 
-        #Need to initialize csv before
-        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "r")
         f = open("profiles.csv", 'r')
       
-        profileNum = len(f.readlines()) + 1
+        #profileNum = len(f.readlines()) + 1
+
+        profiles = f.readlines()
+        numList = []
+        for profile in profiles:
+            num = profile.split(",")[0][-1]
+            numList.append(int(num))
+            
+        profileNum = self.find_lowest_not_in_list(numList)
         f.close()
 
-        #f = open("C:\\Users\\ppart\\OneDrive\\Desktop\\School Stuff\\Projects\\Capstone\\Capstone\\profiles.csv", "a")
         f = open("profiles.csv", 'a')
         
         f.write("Profile #" + str(profileNum) + "," + ",".join(self.profile) + "\n")
@@ -206,7 +233,7 @@ class Page2(Page):
         self.yHum = []
         self.yTemp =[]
         self.xAxis = []
-        self.sub_btn.pack(side="top")
+        #self.sub_btn.pack(side="top")
 
     def openNewWindow(self):
      
@@ -240,6 +267,8 @@ class Page2(Page):
         canvas1.draw()
         canvas1.get_tk_widget().pack(side="left")
 
+        vcmd = (self.register(self.callback))
+
         entryFrame1 = tk.Frame(newWindow)
         entryFrame1.pack(side="top", fill="x", expand=False)
         temp_label = tk.Label(entryFrame1, text = 'Temperature: ', font=('calibre',10, 'bold'))
@@ -250,21 +279,21 @@ class Page2(Page):
         entryFrame2 = tk.Frame(newWindow)
         entryFrame2.pack(side="top", fill="x", expand=False)
         hum_label = tk.Label(entryFrame2, text = 'Humidity: ', font=('calibre',10, 'bold'))
-        hum_entry = tk.Entry(entryFrame2,textvariable = self.intervalHum, font=('calibre',10,'normal'))
+        hum_entry = tk.Entry(entryFrame2,textvariable = self.intervalHum, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         hum_label.pack(side="left", expand=False)
         hum_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame3 = tk.Frame(newWindow)
         entryFrame3.pack(side="top", fill="x", expand=False)
         hours_label = tk.Label(entryFrame3, text = 'Time (Hours): ', font=('calibre',10, 'bold'))
-        hours_entry = tk.Entry(entryFrame3,textvariable = self.intervalHours, font=('calibre',10,'normal'))
+        hours_entry = tk.Entry(entryFrame3,textvariable = self.intervalHours, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         hours_label.pack(side="left", expand=False)
         hours_entry.pack(side="left", fill="x", expand=True)
 
         entryFrame4 = tk.Frame(newWindow)
         entryFrame4.pack(side="top", fill="x", expand=False)
         minutes_label = tk.Label(entryFrame4, text = 'Time (Minutes): ', font=('calibre',10, 'bold'))
-        minutes_entry = tk.Entry(entryFrame4,textvariable = self.intervalMinutes, font=('calibre',10,'normal'))
+        minutes_entry = tk.Entry(entryFrame4,textvariable = self.intervalMinutes, font=('calibre',10,'normal'), validate='all', validatecommand=(vcmd,'%P'))
         minutes_label.pack(side="left", expand=False)
         minutes_entry.pack(side="left", fill="x", expand=True)
 
@@ -278,24 +307,38 @@ class Page2(Page):
         self.errorIntervalFrame1.pack(side="top")
         self.error_IntervalLabel1 = tk.Label(self.errorIntervalFrame1, text = 'Please provide Temperature and Humidity values', font=('calibre',10, 'bold'), fg='red')
         self.error_IntervalLabel2 = tk.Label(self.errorIntervalFrame1, text = 'Please provide a time (Hours and/or Minutes)', font=('calibre',10, 'bold'), fg='red')
+        self.error_IntervalLabel3 = tk.Label(self.errorIntervalFrame1, text = 'Temperature/Humidity values out of range', font=('calibre',10, 'bold'), fg='red')
 
         plotFrame.pack(side="top", expand=False)
 
     def addInterval(self,temp_entry,hum_entry,hours_entry,minutes_entry,plot,canvas):
+                    
+        valid = False
+        try:
+            test = int(self.intervalTemp.get())
+            valid = True
+        except ValueError:
+            valid = False
 
         if(not self.intervalTemp.get() or not self.intervalHum.get()):
             self.error_IntervalLabel2.pack_forget()
-            #self.errorIntervalFrame1.pack(side="top")
+            self.error_IntervalLabel3.pack_forget()
             self.error_IntervalLabel1.pack(side="top", expand=False)
         
-        elif(not self.intervalHours.get() and not self.intervalMinutes.get()):
-            self.error_IntervalLabel1.pack_forget()
-            #self.errorIntervalFrame1.pack(side="top")
-            self.error_IntervalLabel2.pack(side="top", expand=False)
-
+        elif(not valid):
+            self.error_IntervalLabel2.pack_forget()
+            self.error_IntervalLabel3.pack_forget()
+            self.error_IntervalLabel1.pack(side="top", expand=False)
+        
+        elif(int(self.intervalTemp.get()) <= -18 or int(self.intervalTemp.get()) >= 110 or int(self.intervalHum.get()) <= 20 or int(self.intervalHum.get()) >= 98):
+            self.error_IntervalLabel2.pack_forget()
+            self.error_IntervalLabel2.pack_forget()
+            self.error_IntervalLabel3.pack(side="top", expand=False)
+        
         else:
             self.error_IntervalLabel1.pack_forget()
             self.error_IntervalLabel2.pack_forget()
+            self.error_IntervalLabel3.pack_forget()
 
             self.profile.append(self.intervalTemp.get())
             self.profile.append(self.intervalHum.get())
