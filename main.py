@@ -31,6 +31,10 @@ class MainView(tk.Frame):
         if not os.path.isfile("profiles.csv"):
             f = open("profiles.csv", "w")
             f.close()
+        
+        if not os.path.isfile("devices.json"):
+            f = open("devices.json", "w")
+            f.close()
 
         #createProfiles_btn=tk.Button(self,text = 'Create Profile', command = p2.show)
         #createProfiles_btn.grid(row=5,column=0)
