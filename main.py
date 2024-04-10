@@ -1,14 +1,9 @@
-import Thermotron
-import MFC
-import Sensors
-
 from createProfile import Page2
 from home import Page1
 from runProfile import Page3
 
-#import serial
 import tkinter as tk
-#import page
+import os
 
 #Enumerate ports from hub.
 MFC1_port = 'COM4'
@@ -32,6 +27,10 @@ class MainView(tk.Frame):
         p1 = Page1(self)
         p2 = Page2(self)
         p3 = Page3(self)
+
+        if not os.path.isfile("profiles.csv"):
+            f = open("profiles.csv", "w")
+            f.close()
 
         #createProfiles_btn=tk.Button(self,text = 'Create Profile', command = p2.show)
         #createProfiles_btn.grid(row=5,column=0)
