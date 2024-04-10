@@ -71,6 +71,7 @@ class Page1(Page):
         self.humidity = 0
         self.time = 0
         self.interval = 0
+        self.profileFrameList = []
 
         #self.t3.start()
 
@@ -80,20 +81,21 @@ class Page1(Page):
 
         profiles = f.readlines()
         f.close()
+        self.profileList = []
 
         try:
             self.plotFrame.pack_forget()
             self.monitorFrame.pack_forget()
             self.dataFrame.pack_forget()
+            for frame in self.profileFrameList:
+                frame.pack_forget()
+            self.profileFrameList = []
         except:
-            pass
+            print('could not forget')
         
         for profile in profiles:
             
             data = profile.split(",")
-
-            if(data[0] in self.profileList):
-                continue
             
             profileFrame = tk.Frame(self)
             profileFrame.pack(side="top", fill="x")
@@ -102,6 +104,7 @@ class Page1(Page):
             profileButton.pack(side="top", fill="x")
 
             self.profileList.append(data[0])
+            self.profileFrameList.append(profileFrame)
         
         self.dataFrame.pack(side='left')
         self.plotFrame.pack(side='left')
@@ -174,17 +177,22 @@ class Page1(Page):
 
         f = open("profiles.csv", 'w')
 
+        found = False
         for profile in profiles:
             
             data = profile.split(",")
 
+            #if(data[0] != profileName[0] and found):
+            #    data[0] = 'Profile #' + str(int(data[0][-1]) - 1)
+            #    f.write(",".join(data))
             if(data[0] != profileName[0]):
                 f.write(profile)
+            else:
+                found = True
         
         f.close()
         self.showProfileButtons()
                 
-
     def getXY(self, data):
         
         time = (int(data[9]) * 60) + int(data[10])
