@@ -19,6 +19,11 @@ class Page3(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         #self.showProfiles()
+
+        self.mfcList = []
+        self.thermotronList = []
+        self.sensors = []
+
         self.profileList = []
         self.dataFrame = tk.Frame(self)
         self.plotFrame = tk.Frame(self)
@@ -54,7 +59,7 @@ class Page3(Page):
         self.interval_frame = tk.Frame(self.monitorFrame)
         self.intervalTimeLeft_frame = tk.Frame(self.monitorFrame)
 
-        programNum_label = tk.Label(self.programNum_frame, text = 'Program: ', font=('calibre',10, 'bold'))
+        programNum_label = tk.Label(self.programNum_frame, text = 'Profile: ', font=('calibre',10, 'bold'))
         tempValue_label = tk.Label(self.temp_frame, text = 'Temperature: ', font=('calibre',10, 'bold'))
         humidityValue_label = tk.Label(self.humidity_frame, text = 'Humidity: ', font=('calibre',10, 'bold'))
         intervalValue_label = tk.Label(self.interval_frame, text = 'Interval: ', font=('calibre',10, 'bold'))
@@ -106,7 +111,8 @@ class Page3(Page):
             usb_devices, num_devices = port_scanner.scan_usb_ports()
             MFC_PORT, THERMOTRON_PORT,data = port_scanner.getDevicePorts(usb_devices)
         except:
-            print("USB Devices not found")
+            #print("USB Devices not found")
+            pass
 
         self.profileFrameList = []
         self.t1 = threading.Thread(target=self.run, daemon=True)
@@ -191,12 +197,12 @@ class Page3(Page):
 
         while(1):
             
-            programNum_label = tk.Label(self.programNum_frame, text = self.flowRate1, font=('calibre',10, 'bold')).pack()
+            programNum_label = tk.Label(self.programNum_frame, text = self.programNum, font=('calibre',10, 'bold')).pack()
             flowRate1Value_label = tk.Label(self.flowRate1_frame, text = self.flowRate1, font=('calibre',10, 'bold'))
             flowRate2Value_label = tk.Label(self.flowRate2_frame, text = self.flowRate2, font=('calibre',10, 'bold'))
             flowRate3Value_label = tk.Label(self.flowRate3_frame, text = self.flowRate3, font=('calibre',10, 'bold'))
             flowRate4Value_label = tk.Label(self.flowRate4_frame, text = self.flowRate4, font=('calibre',10, 'bold'))
-
+            
             flowRate1Value_label.pack(side='top')
             flowRate2Value_label.pack(side='top')
             flowRate3Value_label.pack(side='top')
@@ -395,6 +401,16 @@ class Page3(Page):
         flowRate1_label.pack(side="left", expand=False)
         self.flowRate1_entry.pack(side="left", fill="x", expand=True)
 
+    def on_closing(self):
+
+        if len(self.mfcList):
+            self.mfcList[0].port.close()
+        if len(self.thermotronList):
+            self.thermotronList[0].port.close()
+        if len(self.sensors):
+            for sensor in self.sensors:
+                sensor.port.close()
+        self.destroy()
 
     def run(self):
 
@@ -402,6 +418,20 @@ class Page3(Page):
 
             time.sleep(1)
             if (self.experimentRunning):
+
+                if len(self.mfcList):
+                    MFC1 = self.mfcList[0]
+                else:
+                    MFC1 = MFC.MFC_device(self.MFC_PORT)
+                    self.mfcList.append(MFC1)
+                    print('Created MFC object')
+
+                if len(self.thermotronList):
+                    thermotron = self.thermotronList[0]
+                else:
+                    thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)
+                    self.thermotronList.append(thermotron)
+                    print("Created thermotron object")
 
                 self.clear_plotFrame()
                 self.clear_queueFrame()
@@ -411,14 +441,13 @@ class Page3(Page):
                 receive_address = self.email
 
                 #Send Commands to Devices
-                try:
-                    thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)   #Initialize Thermotron object                
-                    MFC1 = MFC.MFC_device(self.MFC_PORT)
-                except:
-                    self.experimentRunning = False
-                    print("Thermotron/MFC Ports not connected")
+                #try:
+                #thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)   #Initialize Thermotron object                
+                #MFC1 = MFC.MFC_device(self.MFC_PORT)
+                #except:
+                    #self.experimentRunning = False
+                    #print("Thermotron/MFC Ports not connected")
 
-                sensors = []
                 try:
                     if(not self.sensorPorts):
                         self.experimentRunning = False
@@ -426,12 +455,13 @@ class Page3(Page):
                     self.experimentRunning = False
                     print("Sensor ports not found")
 
-                try: 
-                    for sensorPort in self.sensorPorts:
-                        sensors.append(Sensors.Sensors(sensorPort))
-                except:
-                    self.experimentRunning = False
-                    print("Sensor Ports not connected")
+                if(not len(self.sensors)):
+                    try: 
+                        for sensorPort in self.sensorPorts:
+                            self.sensors.append(Sensors.Sensors(sensorPort))
+                    except:
+                        self.experimentRunning = False
+                        print("Sensor Ports not connected")
 
                 stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp(), thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
                 stopButton.pack(side='left')
@@ -443,21 +473,24 @@ class Page3(Page):
                 continueButton.pack(side='left')
 
                 self.monitorFrame.pack()
-                try:
+                #try:
     
-                    for profile in self.runQueue:
+                for profile in self.runQueue:
+                        
+                        receive_email = self.email
 
                         program_number = int(profile[0][-1])
                         self.programNum = program_number
                         
+                        
                         if(profile[1] != ''):
-                            MFC1.setFlowRate('02',profile[1])
+                            MFC1.setFlowRate('02',str(int(profile[1])*1000))
                         if(profile[2] != ''):
-                            MFC1.setFlowRate('04',profile[2])
+                            MFC1.setFlowRate('04',str(int(profile[2])*1000))
                         if(profile[3] != ''):
-                            MFC1.setFlowRate('06',profile[3])
+                            MFC1.setFlowRate('06',str(int(profile[3])*1000))
                         if(profile[4] != ''):
-                            MFC1.setFlowRate('08',profile[4])
+                            MFC1.setFlowRate('08',str(int(profile[4])*1000))
 
                         program = Experiment.Experiment(program_number)                      #Create experiment object
                         
@@ -467,7 +500,7 @@ class Page3(Page):
 
                         first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
                         headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
-                        for i in range(len(sensors)):
+                        for i in range(len(self.sensors)):
                             headers.append("Sensor" + str(i) + ": Col1")
                             headers.append("Sensor" + str(i) + ": Col2")
                             headers.append("Sensor" + str(i) + ": Col3")
@@ -483,7 +516,9 @@ class Page3(Page):
                         current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
 
                         file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
-                        file_path = "./Thermotron_data/Thermotron_data_" + file_name
+                        file_path = "Thermotron_data/Thermotron_data_" + file_name
+
+
 
                         file = open(file_path, mode='a', newline='')
                         writer = csv.writer(file)
@@ -494,6 +529,7 @@ class Page3(Page):
                         initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
                         initial_humidity = program.intervals[0]["humidity"]
 
+                        print('test')
                         thermotron.stop()                                                    #Place in stop initially
                         thermotron.write_program(program.command)                            #Write program to Thermotron
                         thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
@@ -507,7 +543,7 @@ class Page3(Page):
                         
                         start_time = datetime.datetime.now()
 
-                        setpoint_ok_max = 1500
+                        setpoint_ok_max = 50
 
                         self.flowRate1 = MFC1.getFlowRate('02')
                         self.flowRate2 = MFC1.getFlowRate('04')
@@ -536,6 +572,10 @@ class Page3(Page):
 
                             thermotron.GUI_stop_request == False
                             print("Program stopped by GUI\n")
+
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "GUI")
+                            Thermotron.send_email(receiver= receive_email ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            
                             self.stopExp()
                             break
 
@@ -564,12 +604,13 @@ class Page3(Page):
 
                                 dataToCSV = [thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity]
                                 
-                                for sensor in sensors:
+                                for sensor in self.sensors:
                                     data = (sensor.singleMeasurement().strip("\r\n")).split(",")
                                     
                                     for col in data:
                                         dataToCSV.append(col)
 
+                                print()
 
                                 writer.writerow(dataToCSV)
 
@@ -577,28 +618,56 @@ class Page3(Page):
                                 self.humidity = thermotron.humidity
                                 self.interval = thermotron.interval
                                 self.time = thermotron.intervaltimeleft
+
+
+                                print("Current Interval: " + str(thermotron.interval))
+                                print("Current Temperature: " + str(thermotron.temp))
+                                print("Current Humidity: " + str(thermotron.humidity))
+
+                                print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
                             
                             #time.sleep(0.5)
 
                         if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
 
                             thermotron.GUI_stop_request == False
-
+                            
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "GUI")
+                            Thermotron.send_email(receiver= receive_email ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            
                             print("Program stopped by GUI\n")
                             self.stopExp()
                             break
 
-                        file.close()
-                        thermotron.stop() #Stop thermotron once program is done
-                        [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime )
-                        thermotron.send_email(receiver= "matthewdjohnson2929@gmail.com",subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program Done")
-                
-                except:
-                    file.close()
-                    [subject, message] = thermotron.email_msg(program_number = program.number, start_time= current_datetime, error = True )
-                    thermotron.send_email(receiver= receive_address,subject= subject, message = message)
 
+                        if thermotron.interval == program.interval_count + 1:
+
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime )
+                            Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program Completed")
+
+                        else:
+
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "STOP")
+                            Thermotron.send_email(receiver= receive_email, subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program Stopped from Thermotron")
+                        
+                        thermotron.stop() #Stop thermotron once program is done
+                        file.close()
+
+                
+                #except:
+                #try:
+                #        thermotron.stop
+                #       file.close()
+
+                #except:
+                #        pass
+                #finally:
+                        #[subject, message] = Thermotron.email_msg(error = True )
+                        #Thermotron.send_email(receiver= receive_address,subject= subject, message = message)
+                        #print("Error occured")
+                
 
                 self.resetQueue()
                 self.clear_utilityFrame()

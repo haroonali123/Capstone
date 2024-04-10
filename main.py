@@ -5,6 +5,8 @@ from runProfile import Page3
 import tkinter as tk
 import os
 
+#Make it so that the used save devices happens automatically unless you specify
+
 #Enumerate ports from hub.
 MFC1_port = 'COM4'
 MFC2_port = ''
@@ -35,6 +37,9 @@ class MainView(tk.Frame):
         if not os.path.isfile("devices.json"):
             f = open("devices.json", "w")
             f.close()
+
+        if not os.path.exists("Thermotron_data"):
+            os.makedirs("Thermotron_data")
 
         #createProfiles_btn=tk.Button(self,text = 'Create Profile', command = p2.show)
         #createProfiles_btn.grid(row=5,column=0)
