@@ -539,14 +539,14 @@ class Page3(Page):
                         initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
                         initial_humidity = program.intervals[0]["humidity"]
                         
-                        try:
-                            thermotron.stop()                                                    #Place in stop initially
-                            thermotron.write_program(program.command)                            #Write program to Thermotron
-                            thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
-                        except:
-                            print("Thermotron Communication Failed: 2")
-                            self.stopExp()
-                            break
+                        #try:
+                        thermotron.stop()                                                    #Place in stop initially
+                        thermotron.write_program(program.command)                            #Write program to Thermotron
+                        thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
+                        #except:
+                        #    print("Thermotron Communication Failed: 2")
+                        #    self.stopExp()
+                        #    break
 
                         print("-"*72)                                                        
                         print("Starting Program number: " + str(program.number) + '\n')            
@@ -697,8 +697,14 @@ class Page3(Page):
                             Thermotron.send_email(receiver= receive_email, subject= subject, message = message, file_path=file_path, file_name= file_name)
                             print("Program Stopped from Thermotron")
                         
-                        thermotron.stop() #Stop thermotron once program is done
-                        file.close()
+                        try:
+                            thermotron.stop() #Stop thermotron once program is done
+                            file.close()
+
+                        except:
+                            print("Thermotron communication failed: 9")
+                            self.stopExp()
+                            break
 
                 
                 #except:
