@@ -295,7 +295,12 @@ class Thermotron:
 
 
 def email_msg(start_time = "",program_number = 0, error = False, early_stop = ""):
-        
+
+    time_formatted = start_time.split("-")
+    time_val = time_formatted[-1].split("_")
+
+    date_time = time_formatted[0] + "/" + time_formatted[1] + "/" + time_formatted[2] + " at " + time_val[0] + ":" + time_val[1]
+
     if error == True:
         subject = "Thermotron had an error"
         message = "Thermotron encountered an error and could not run"
@@ -303,16 +308,16 @@ def email_msg(start_time = "",program_number = 0, error = False, early_stop = ""
     elif  early_stop == "GUI":
             
         subject = "Program # " + str(program_number) + " was stopped from the PC"
-        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " was stopped from the PC"
+        message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped from the PC"
 
     elif early_stop == "STOP":
             
         subject = "Program # " + str(program_number) + " was stopped from the thermotron"
-        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " was stopped from the thermotron"
+        message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped from the thermotron"
 
     else:
         subject = "Program # " + str(program_number) + " completed without error"
-        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " has completed without error"
+        message = "Program # "+ str(program_number) + " which started on " + date_time + " has completed without error"
         
     return([subject, message])
 
@@ -355,4 +360,3 @@ def send_email(subject, message, receiver = '', file_path = "", file_name = "fil
 
     else:
         pass
-     
