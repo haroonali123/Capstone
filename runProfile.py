@@ -710,7 +710,7 @@ class Page3(Page):
                         print("Program Completed without error")
 
                     elif error_flag != 0:
-                        [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program.number, start_time= current_datetime )
+                        [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program_number, start_time= current_datetime )
                         Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
                         print("Program ran into error")
 
