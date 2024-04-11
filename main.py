@@ -6,6 +6,7 @@ import tkinter as tk
 import os
 
 #Make it so that the used save devices happens automatically unless you specify
+#Email does not send data
 
 #Enumerate ports from hub.
 MFC1_port = 'COM4'

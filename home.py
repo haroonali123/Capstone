@@ -137,6 +137,8 @@ class Page1(Page):
 
         plot1.plot(xAxis,yTemp, label='Temperature')
         plot1.plot(xAxis,yHum, label='Humidity')
+        plot1.plot(xAxis,yTemp, 'o')
+        plot1.plot(xAxis,yHum, 'o')
         plot1.legend()
         plot1.set_xlabel("Time (minutes)")
         plot1.set_ylabel("Degrees Celsius / % Humidity")

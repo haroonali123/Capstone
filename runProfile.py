@@ -422,16 +422,43 @@ class Page3(Page):
                 if len(self.mfcList):
                     MFC1 = self.mfcList[0]
                 else:
-                    MFC1 = MFC.MFC_device(self.MFC_PORT)
-                    self.mfcList.append(MFC1)
-                    print('Created MFC object')
+                    try:
+                        MFC1 = MFC.MFC_device(self.MFC_PORT)
+                        self.mfcList.append(MFC1)
+                        print('Created MFC object')
+                    except:
+                        print("Brook's MFC Port not connected")
+                        self.stopExp()
+                        continue
 
                 if len(self.thermotronList):
                     thermotron = self.thermotronList[0]
                 else:
-                    thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)
-                    self.thermotronList.append(thermotron)
-                    print("Created thermotron object")
+                    try:
+                        thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)
+                        self.thermotronList.append(thermotron)
+                        print("Created thermotron object")
+                    except:
+                        print("Thermotron Port not connected")
+                        self.stopExp()
+                        continue
+                
+                try:
+                    if(not self.sensorPorts):
+                        self.experimentRunning = False
+                except:
+                    self.experimentRunning = False
+                    print("Sensor ports not found")
+
+                if(not len(self.sensors)):
+                    try: 
+                        for sensorPort in self.sensorPorts:
+                            self.sensors.append(Sensors.Sensors(sensorPort))
+                    except:
+                        self.experimentRunning = False
+                        print("Sensor Ports not connected")
+                        self.stopExp()
+                        continue
 
                 self.clear_plotFrame()
                 self.clear_queueFrame()
@@ -448,20 +475,7 @@ class Page3(Page):
                     #self.experimentRunning = False
                     #print("Thermotron/MFC Ports not connected")
 
-                try:
-                    if(not self.sensorPorts):
-                        self.experimentRunning = False
-                except:
-                    self.experimentRunning = False
-                    print("Sensor ports not found")
-
-                if(not len(self.sensors)):
-                    try: 
-                        for sensorPort in self.sensorPorts:
-                            self.sensors.append(Sensors.Sensors(sensorPort))
-                    except:
-                        self.experimentRunning = False
-                        print("Sensor Ports not connected")
+                
 
                 stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp(), thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
                 stopButton.pack(side='left')
@@ -738,6 +752,8 @@ class Page3(Page):
 
         plot1.plot(xAxis,yTemp, label='Temperature')
         plot1.plot(xAxis,yHum, label='Humidity')
+        plot1.plot(xAxis,yTemp, 'o')
+        plot1.plot(xAxis,yHum, 'o')
         plot1.legend()
         plot1.set_xlabel("Time (minutes)")
         plot1.set_ylabel("Degrees Celsius / % Humidity")

@@ -311,7 +311,7 @@ def email_msg(start_time = "",program_number = 0, error = False, early_stop = ""
 
 def send_email(receiver, subject, message, file_path = "", file_name = "file"):
         
-    try:
+
         email_sender = 'thermotronabb108@gmail.com'
         email_password = 'cjum zibl qwyd oecn'
 
@@ -344,7 +344,4 @@ def send_email(receiver, subject, message, file_path = "", file_name = "file"):
             server.login(email_sender, email_password)
             text = message.as_string()
             server.sendmail(email_sender, receiver, text)
-
-    except:
-        pass
      
