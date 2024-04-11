@@ -294,32 +294,65 @@ class Thermotron:
 #################################################################################################################################################
 
 
-def email_msg(start_time = "",program_number = 0, error = False, early_stop = ""):
+def email_msg(error = 0, start_time = "", program_number = 0, early_stop = ""):
 
     time_formatted = start_time.split("-")
     time_val = time_formatted[-1].split("_")
 
     date_time = time_formatted[0] + "/" + time_formatted[1] + "/" + time_formatted[2] + " at " + time_val[0] + ":" + time_val[1]
 
-    if error == True:
-        subject = "Thermotron had an error"
-        message = "Thermotron encountered an error and could not run"
+    if error != 0:
 
-    elif  early_stop == "GUI":
-            
-        subject = "Program # " + str(program_number) + " was stopped from the PC"
-        message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped from the PC"
+        if error == 1:
 
-    elif early_stop == "STOP":
-            
-        subject = "Program # " + str(program_number) + " was stopped from the thermotron"
-        message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped from the thermotron"
+            if program_number == 0:
 
-    else:
-        subject = "Program # " + str(program_number) + " completed without error"
-        message = "Program # "+ str(program_number) + " which started on " + date_time + " has completed without error"
+                subject = "The program did not complete due to an error in the Thermotron"
+                message = "The program could not be completed due to an error with the Thermotron, please check the Thermotron as it may still be running"
+
+            else:
+
+                subject = "Program # " + str(program_number) + " was stopped due to an error with the Thermotron"
+                message = "Program # "+ str(program_number) + " which started on " + date_time + " could not be completed due to an error with the Thermotron, please check the Thermotron as it may still be running."
+
+        elif error == 2:
         
-    return([subject, message])
+            subject = "Program # " + str(program_number) + " was stopped due to an error with the mass flow controller"
+            message = "Program # "+ str(program_number) + " which started on " + date_time + " could not be completed due to an error with the mass flow controller."
+
+        elif error == 3:
+        
+            subject = "Program # " + str(program_number) + " was stopped due to an error with the sensors"
+            message = "Program # "+ str(program_number) + " which started on " + date_time + " could not be completed due to an error with the sensors."
+
+        else:
+            subject = "Program # " + str(program_number) + " was stopped due to an unknown error"
+            message = "Program # "+ str(program_number) + " which started on " + date_time + " could not be completed due to an unknown error."
+
+
+        return [subject, message]
+    
+    elif early_stop != "":
+
+        if  early_stop == "GUI":
+                
+            subject = "Program # " + str(program_number) + " was stopped from the PC"
+            message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped early from the PC."
+
+        elif early_stop == "STOP":
+                
+            subject = "Program # " + str(program_number) + " was stopped early from the Thermotron"
+            message = "Program # "+ str(program_number) + " which started on " + date_time + " was stopped early from the Thermotron."
+ 
+        return([subject, message])
+    
+    else:
+
+        subject = "Program # " + str(program_number) + " completed without error"
+        message = "Program # "+ str(program_number) + " which started on " + date_time + " has completed without error."
+        
+        return([subject, message])
+
 
 
 def send_email(subject, message, receiver = '', file_path = "", file_name = "file"):
@@ -339,8 +372,6 @@ def send_email(subject, message, receiver = '', file_path = "", file_name = "fil
         message['subject'] = subject
 
         message.attach(MIMEText(body, "plain"))
-
-
 
         if file_path != "":
 
