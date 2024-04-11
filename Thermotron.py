@@ -295,23 +295,23 @@ def email_msg(start_time = "",program_number = 0, error = False, early_stop = ""
     elif  early_stop == "GUI":
             
         subject = "Program # " + str(program_number) + " was stopped from the PC"
-        message = "Program # "+ str(program_number) + " which started on " + start_time + " was stopped from the PC"
+        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " was stopped from the PC"
 
     elif early_stop == "STOP":
             
         subject = "Program # " + str(program_number) + " was stopped from the thermotron"
-        message = "Program # "+ str(program_number) + " which started on " + start_time + " was stopped from the thermotron"
+        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " was stopped from the thermotron"
 
     else:
         subject = "Program # " + str(program_number) + " completed without error"
-        message = "Program # "+ str(program_number) + " which started on " + start_time + " has completed without error"
+        message = "Program # "+ str(program_number) + " which started on " + str(start_time) + " has completed without error"
         
     return([subject, message])
 
 
-def send_email(receiver, subject, message, file_path = "", file_name = "file"):
+def send_email(subject, message, receiver = '', file_path = "", file_name = "file"):
         
-
+    if receiver != '':
         email_sender = 'thermotronabb108@gmail.com'
         email_password = 'cjum zibl qwyd oecn'
 
@@ -344,4 +344,7 @@ def send_email(receiver, subject, message, file_path = "", file_name = "file"):
             server.login(email_sender, email_password)
             text = message.as_string()
             server.sendmail(email_sender, receiver, text)
+
+    else:
+        pass
      

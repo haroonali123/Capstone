@@ -411,7 +411,11 @@ class Page3(Page):
             for sensor in self.sensors:
                 sensor.port.close()
         self.destroy()
-
+    
+    def printError(self, message):
+        entryFrame1 = tk.Frame(self).pack(side="top", fill="x", expand=False)
+        error_label = tk.Label(entryFrame1, text = message, font=('calibre',10, 'bold'), fg='red').pack()
+        
     def run(self):
 
         while(1):
@@ -467,16 +471,6 @@ class Page3(Page):
 
                 receive_address = self.email
 
-                #Send Commands to Devices
-                #try:
-                #thermotron = Thermotron.Thermotron(self.THERMOTRON_PORT)   #Initialize Thermotron object                
-                #MFC1 = MFC.MFC_device(self.MFC_PORT)
-                #except:
-                    #self.experimentRunning = False
-                    #print("Thermotron/MFC Ports not connected")
-
-                
-
                 stopButton = tk.Button(self.utilityFrame, command=lambda:[self.stopExp(), thermotron.GUI_Request("STOP")], text = 'Stop Experiment')
                 stopButton.pack(side='left')
 
@@ -496,19 +490,23 @@ class Page3(Page):
                         program_number = int(profile[0][-1])
                         self.programNum = program_number
                         
-                        
-                        if(profile[1] != ''):
-                            MFC1.setFlowRate('02',str(int(profile[1])*1000))
-                        if(profile[2] != ''):
-                            MFC1.setFlowRate('04',str(int(profile[2])*1000))
-                        if(profile[3] != ''):
-                            MFC1.setFlowRate('06',str(int(profile[3])*1000))
-                        if(profile[4] != ''):
-                            MFC1.setFlowRate('08',str(int(profile[4])*1000))
+                        try:
+                            if(profile[1] != ''):
+                                MFC1.setFlowRate('02',str(int(profile[1])*1000))
+                            if(profile[2] != ''):
+                                MFC1.setFlowRate('04',str(int(profile[2])*1000))
+                            if(profile[3] != ''):
+                                MFC1.setFlowRate('06',str(int(profile[3])*1000))
+                            if(profile[4] != ''):
+                                MFC1.setFlowRate('08',str(int(profile[4])*1000))
+                        except:
+                            print("MFC device communication failed: 1")
+                            self.stopExp()
+                            break
 
                         program = Experiment.Experiment(program_number)                      #Create experiment object
                         
-                        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
+                        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M")
                         file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
                         file_path = "./Thermotron_data/Thermotron_data_" + file_name
 
@@ -532,8 +530,6 @@ class Page3(Page):
                         file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
                         file_path = "Thermotron_data/Thermotron_data_" + file_name
 
-
-
                         file = open(file_path, mode='a', newline='')
                         writer = csv.writer(file)
                         writer.writerow(first_row)   #Write first row containing information thats constant throughout a program
@@ -542,11 +538,15 @@ class Page3(Page):
                         
                         initial_temp = program.intervals[0]["temp"]                          #Set initial temperature and humidity
                         initial_humidity = program.intervals[0]["humidity"]
-
-                        print('test')
-                        thermotron.stop()                                                    #Place in stop initially
-                        thermotron.write_program(program.command)                            #Write program to Thermotron
-                        thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
+                        
+                        try:
+                            thermotron.stop()                                                    #Place in stop initially
+                            thermotron.write_program(program.command)                            #Write program to Thermotron
+                            thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
+                        except:
+                            print("Thermotron Communication Failed: 2")
+                            self.stopExp()
+                            break
 
                         print("-"*72)                                                        
                         print("Starting Program number: " + str(program.number) + '\n')            
@@ -559,17 +559,28 @@ class Page3(Page):
 
                         setpoint_ok_max = 50
 
-                        self.flowRate1 = MFC1.getFlowRate('02')
-                        self.flowRate2 = MFC1.getFlowRate('04')
-                        self.flowRate3 = MFC1.getFlowRate('06')
-                        self.flowRate4 = MFC1.getFlowRate('08')
+                        try:
+                            self.flowRate1 = MFC1.getFlowRate('02')
+                            self.flowRate2 = MFC1.getFlowRate('04')
+                            self.flowRate3 = MFC1.getFlowRate('06')
+                            self.flowRate4 = MFC1.getFlowRate('08')
+                        except:
+                            print("MFC Communication Failed: 3")
+                            self.stopExp()
+                            break
 
                         while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                             
                             if thermotron.operatingmode == 2:         #Don't poll while it's in hold (but stay in while loop)
+                                
+                                try:
+                                    thermotron.getStatus()
+                                    thermotron.getTempandHumidity()
+                                except:
+                                    print("Thermotron Communication Failed: 4")
+                                    self.stopExp()
+                                    break
 
-                                thermotron.getStatus()
-                                thermotron.getTempandHumidity()
                                 print("Temperature is: " + str(thermotron.temp))
                                 #print("Humidity is: " + str(thermotron.humidity))
 
@@ -600,29 +611,49 @@ class Page3(Page):
                         print("-"*72)
                         print("Starting program number " + str(program.number))
                         
-                        thermotron.stop_run_program(program.number)      #Stop, then run selected program
-                        thermotron.getStatus()
+                        try:
+                            thermotron.stop_run_program(program.number)      #Stop, then run selected program
+                            thermotron.getStatus()
+                        except:
+                            print("Thermotron Communication Failed: 5")
+                            self.stopExp()
+                            break
 
                         while(thermotron.operatingmode == 3 or thermotron.operatingmode == 4):      #While program is running/hold constantly poll for information
                             
                             if(thermotron.operatingmode == 3):      #Dont poll while its in hold but stay in while loop
                                 
-                                self.flowRate1 = MFC1.getFlowRate('02')
-                                self.flowRate2 = MFC1.getFlowRate('04')
-                                self.flowRate3 = MFC1.getFlowRate('06')
-                                self.flowRate4 = MFC1.getFlowRate('08')
-
-                                thermotron.poll_experiment()
+                                try:
+                                    self.flowRate1 = MFC1.getFlowRate('02')
+                                    self.flowRate2 = MFC1.getFlowRate('04')
+                                    self.flowRate3 = MFC1.getFlowRate('06')
+                                    self.flowRate4 = MFC1.getFlowRate('08')
+                                except:
+                                    print("MFC Communication failed: 6")
+                                    self.stopExp()
+                                    break
+                                
+                                try:
+                                    thermotron.poll_experiment()
+                                except:
+                                    print("Thermotron Communication Failed: 7")
+                                    self.stopExp()
+                                    break
 
                                 time_in_interval = thermotron.intervaltimetotal - thermotron.intervaltimeleft
 
                                 dataToCSV = [thermotron.interval, time_in_interval , thermotron.temp, thermotron.humidity]
                                 
-                                for sensor in self.sensors:
-                                    data = (sensor.singleMeasurement().strip("\r\n")).split(",")
-                                    
-                                    for col in data:
-                                        dataToCSV.append(col)
+                                try:
+                                    for sensor in self.sensors:
+                                        data = (sensor.singleMeasurement().strip("\r\n")).split(",")
+                                        
+                                        for col in data:
+                                            dataToCSV.append(col)
+                                except:
+                                    print("Sensor Communication Failed: 8")
+                                    self.stopExp()
+                                    break
 
                                 print()
 
