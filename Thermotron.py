@@ -25,7 +25,7 @@ class Thermotron:
         #Baudrate, bytesize and parity all defined by dip switch position (Timeout can be tweaked)
 
         self.port = serial.Serial(port = comPort, baudrate = 9600, bytesize = 8, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, timeout = 0.5)
-        time.sleep(2)
+        
         self.temp = 0                    #Current Temperature and humidity values
  
         self.humidity = 0
@@ -70,7 +70,7 @@ class Thermotron:
             while response == '' and count < 10:
                 self.write_command(cmd)
                 response = self.read_response()
-                count = count +1
+                count = count + 1
 
             response = int(response)
 
