@@ -482,7 +482,7 @@ class Page3(Page):
 
                 self.monitorFrame.pack()
 
-                for profile in self.runQueue:
+                for profile in self.runQueue:  #Run the scheduled programs
                         
                     error_flag = 0
 
@@ -682,7 +682,7 @@ class Page3(Page):
                             
                         #time.sleep(0.5)
 
-                    if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button is hit
+                    if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button on GUI is hit
 
                         thermotron.GUI_stop_request == False
                             
@@ -694,8 +694,9 @@ class Page3(Page):
                         break
 
                     try:
-                        thermotron.stop() #Stop thermotron once program is done
                         file.close()
+                        thermotron.stop() #Stop thermotron once program is done
+
 
                     except:
                         print("Thermotron communication failed: 9")
@@ -703,22 +704,31 @@ class Page3(Page):
                         self.stopExp()
                         break
 
-                    if thermotron.interval == program.interval_count + 1:
+                    if thermotron.interval == program.interval_count + 1:     #Send email when program completes normally
 
                         [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime )
                         Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
                         print("Program Completed without error")
 
-                    elif error_flag != 0:
+                    elif error_flag != 0:                                    #Send email when an error occurs
                         [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program_number, start_time= current_datetime )
                         Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program ran into error")
+                        print("Program ran into an error")
+                        break
 
-                    else:
+                    elif error_flag == 0 and thermotron.interval < program.interval_count + 1:           #Send email when the program is stopped from the thermotron
+
+                        [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "STOP")
+                        Thermotron.send_email(receiver= receive_email ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                        print("Program stopped by Thermotron\n")
+                        break
+
+                    else:                     #Send an email when an unknown error occured
                         error_flag = 4
                         [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program.number, start_time= current_datetime)
                         Thermotron.send_email(receiver= receive_email, subject= subject, message = message, file_path=file_path, file_name= file_name)
                         print("Unknown Error")
+                        break
                 
 
                 self.resetQueue()
