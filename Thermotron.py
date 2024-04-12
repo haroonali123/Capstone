@@ -67,7 +67,7 @@ class Thermotron:
             response = ''
             count = 0
             
-            while response == '' and count < 10:
+            while response == '' and count != 10:
                 self.write_command(cmd)
                 response = self.read_response()
                 count = count + 1

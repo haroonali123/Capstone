@@ -254,6 +254,7 @@ class Page3(Page):
     #Doesn't work on multiple runs
 
     def stopExp(self):
+
         self.experimentRunning = False
         self.isRunningFrame.winfo_children()[1].destroy()
         isRunningStatusLabel = tk.Label(self.isRunningFrame, text = 'IDLE', font=('calibre',10, 'bold'), fg='green').pack(side='left')
@@ -483,14 +484,15 @@ class Page3(Page):
                 self.monitorFrame.pack()
 
                 for profile in self.runQueue:  #Run the scheduled programs
-                        
+                    
+                    thermotron.GUI_stop_request = False
                     error_flag = 0
 
                     receive_email = self.email
 
                     program_number = int(profile[0][-1])
                     self.programNum = program_number
-                        
+
                     try:
                         if(profile[1] != ''):
                             MFC1.setFlowRate('02',str(int(profile[1])*1000))
@@ -503,10 +505,11 @@ class Page3(Page):
                     except:
                         print("MFC device communication failed: 1")
                         error_flag = 2
+                        
                         self.stopExp()
                         break
 
-                    program = Experiment.Experiment(program_number)                      #Create experiment object
+                    program = Experiment.Experiment(program_number)          #Create experiment object
                         
                     current_datetime = datetime.datetime.now().strftime("%Y-%m-%d-%H_%M")
                     file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
@@ -514,6 +517,7 @@ class Page3(Page):
 
                     first_row = ["Started on:", current_datetime, "Program #:", program.number, "Flow Rate 1:", self.flowRate1, "Flow Rate 2:", self.flowRate2, "Flow Rate 3:", self.flowRate3, "Flow Rate 4:", self.flowRate4]
                     headers = ["Interval #", "Time in Interval", "Temperature", "Humidity"]
+
                     for i in range(len(self.sensors)):
                         headers.append("Sensor" + str(i) + ": Col1")
                         headers.append("Sensor" + str(i) + ": Col2")
@@ -545,6 +549,7 @@ class Page3(Page):
                         thermotron.stop()                                                    #Place in stop initially
                         thermotron.write_program(program.command)                            #Write program to Thermotron
                         thermotron.run_manual(initial_temp, initial_humidity)                #Start running in manual with initial SP's defined in program
+                    
                     except:
                         print("Thermotron Communication Failed: 2")
                         error_flag = 1
@@ -556,22 +561,28 @@ class Page3(Page):
                     print("Manually running until initial temperature: " + str(initial_temp) + '\n')
                     print("Manually running until initial humidity: " + str(initial_humidity) + '\n')
 
-                    setpoint_ok_count = 0
                         
                     start_time = datetime.datetime.now()
 
-                    setpoint_ok_max = 50
 
                     try:
                         self.flowRate1 = MFC1.getFlowRate('02')
                         self.flowRate2 = MFC1.getFlowRate('04')
                         self.flowRate3 = MFC1.getFlowRate('06')
                         self.flowRate4 = MFC1.getFlowRate('08')
+                        
                     except:
                         print("MFC Communication Failed: 3")
                         error_flag = 2
                         self.stopExp()
                         break
+
+                    setpoint_ok_count = 0  
+
+                    setpoint_ok_max = 500  #Thermotron will wait for this long for setpoints to be within acceptable range before ending manual step
+                    temp_deviation = 1 #The temperature setpoing +/- this value is considered acceptable
+                    humidity_deviation = 1 #The humidity setpoing +/- this value is considered acceptable
+
 
                     while (thermotron.operatingmode == 2 or thermotron.operatingmode == 4) and setpoint_ok_count < setpoint_ok_max:  #While in manual/hold and setpoints have not been reached for 100 ticks
                             
@@ -585,11 +596,11 @@ class Page3(Page):
                                 error_flag = 1
                                 self.stopExp()
                                 break
-
+                            
                             print("Temperature is: " + str(thermotron.temp))
-                            #print("Humidity is: " + str(thermotron.humidity))
+                            print("Humidity is: " + str(thermotron.humidity))
 
-                            if (thermotron.temp < initial_temp - 1 or thermotron.temp > initial_temp + 1): #or (thermotron.humidity < initial_humidity - 1 or thermotron.humidity > initial_humidity + 1):
+                            if (thermotron.temp < initial_temp - temp_deviation or thermotron.temp > initial_temp + temp_deviation): #or (thermotron.humidity < initial_humidity - humidity_deviation or thermotron.humidity > initial_humidity + humidity_deviation):
                                     
                                 setpoint_ok_count = 0  #Reset count if temp/humidity are out of setpoint bounds
                                 
@@ -597,7 +608,8 @@ class Page3(Page):
                                     
                                 print("Setpoint ok, tick " + str(setpoint_ok_count) + "/" + str(setpoint_ok_max) + '\n')
                                 setpoint_ok_count = setpoint_ok_count + 1 #Increment count if temp/humidity is within bounds
-                        
+                    
+
                     if thermotron.GUI_stop_request == True:               #Break out of schedule if stop button is hit
 
                         thermotron.GUI_stop_request == False
@@ -614,14 +626,14 @@ class Page3(Page):
 
                     print("Manual run took: " + str(end_time - start_time) + '\n')
                     print("-"*72)
-                    print("Starting program number " + str(program.number))
                         
                     try:
                         thermotron.stop_run_program(program.number)      #Stop, then run selected program
                         thermotron.getStatus()
                     except:
+
                         print("Thermotron Communication Failed: 5")
-                        error_flag = 1
+                        error_flag = 1                        
                         self.stopExp()
                         break
 
@@ -635,14 +647,17 @@ class Page3(Page):
                                 self.flowRate3 = MFC1.getFlowRate('06')
                                 self.flowRate4 = MFC1.getFlowRate('08')
                             except:
+                
                                 print("MFC Communication failed: 6")
                                 error_flag = 2
+                                
                                 self.stopExp()
                                 break
                                 
                             try:
                                 thermotron.poll_experiment()
                             except:
+                
                                 print("Thermotron Communication Failed: 7")
                                 error_flag = 1
                                 self.stopExp()
@@ -680,7 +695,6 @@ class Page3(Page):
 
                             print(str(time_in_interval) + " out of " + str(thermotron.intervaltimetotal) + " minutes in interval\n")
                             
-                        #time.sleep(0.5)
 
                     if thermotron.GUI_stop_request == True:        #Break out of schedule if stop button on GUI is hit
 
@@ -697,39 +711,34 @@ class Page3(Page):
                         file.close()
                         thermotron.stop() #Stop thermotron once program is done
 
-
                     except:
                         print("Thermotron communication failed: 9")
                         error_flag = 1
                         self.stopExp()
                         break
-
-                    if thermotron.interval == program.interval_count + 1:     #Send email when program completes normally
-
-                        [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime )
-                        Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program Completed without error")
-
-                    elif error_flag != 0:                                    #Send email when an error occurs
-                        [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program_number, start_time= current_datetime )
-                        Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program ran into an error")
+                    
+                    if error_flag != 0:
                         break
 
-                    elif error_flag == 0 and thermotron.interval < program.interval_count + 1:           #Send email when the program is stopped from the thermotron
+                    if error_flag == 0:
+                        if thermotron.interval == program.interval_count + 1:     #Send email when program completes normally
 
-                        [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "STOP")
-                        Thermotron.send_email(receiver= receive_email ,subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Program stopped by Thermotron\n")
-                        break
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime )
+                            Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program Completed without error\n")
 
-                    else:                     #Send an email when an unknown error occured
-                        error_flag = 4
-                        [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program.number, start_time= current_datetime)
-                        Thermotron.send_email(receiver= receive_email, subject= subject, message = message, file_path=file_path, file_name= file_name)
-                        print("Unknown Error")
-                        break
+                        elif thermotron.interval < program.interval_count + 1:           #Send email when the program is stopped from the thermotron
+
+                            [subject, message] = Thermotron.email_msg(program_number = program.number, start_time= current_datetime, early_stop= "STOP")
+                            Thermotron.send_email(receiver= receive_email ,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                            print("Program stopped by Thermotron\n")
+                            break
+
                 
+                if error_flag != 0:
+                    [subject, message] = Thermotron.email_msg(error= error_flag, program_number = program_number, start_time= current_datetime )
+                    Thermotron.send_email(receiver= receive_email,subject= subject, message = message, file_path=file_path, file_name= file_name)
+                    print("Program error")
 
                 self.resetQueue()
                 self.clear_utilityFrame()

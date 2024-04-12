@@ -10,7 +10,7 @@ class MFC_device:
         cmd = 'AZ.' + port + 'P01=' + value + '\r'
         self.port.write(cmd.encode())
         response = self.port.readline()
-        print(response)
+        #print(response)
 
     def getFlowRate(self, port):
         cmd = 'AZ.' + port + 'P01?\r' 
