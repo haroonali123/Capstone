@@ -531,8 +531,6 @@ class Page3(Page):
                         headers.append("Sensor" + str(i) + ": Col10")
                         headers.append("Sensor" + str(i) + ": Col11")
 
-                    current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H_%M")
-
                     file_name =  current_datetime + "_Program_Number_"+ str(program.number) + ".csv"
                     file_path = "Thermotron_data/Thermotron_data_" + file_name
 
